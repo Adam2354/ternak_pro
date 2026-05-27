@@ -27,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Fungsi logout yang memanggil metode logout dari ApiService
-   Future<void> _logOut(BuildContext context) async {
+  Future<void> _logOut(BuildContext context) async {
     // Tampilkan modal konfirmasi
     final bool? shouldLogout = await showLogoutConfirmationDialog(context);
 
@@ -42,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       // Tambahkan jeda waktu untuk menunjukkan loading (misalnya 1,5 detik)
       await Future.delayed(const Duration(milliseconds: 4000));
-      
+
       // Memanggil logout melalui instance ApiService
       await ApiService.logout(context);
     } catch (e) {
@@ -137,7 +137,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
-                              Navigator.of(context).pop(false); // Kembalikan false untuk batal
+                              Navigator.of(
+                                context,
+                              ).pop(false); // Kembalikan false untuk batal
                             },
                             child: Center(
                               child: Text(
@@ -168,7 +170,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
-                              Navigator.of(context).pop(true); // Kembalikan true untuk lanjut logout
+                              Navigator.of(context).pop(
+                                true,
+                              ); // Kembalikan true untuk lanjut logout
                             },
                             child: Center(
                               child: Text(
@@ -227,9 +231,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Positioned.fill(
               child: Container(
                 color: Colors.white60, // Background transparan
-                child: Center(
-                  child: TernakProBoxLoading(),
-                ),
+                child: Center(child: TernakProBoxLoading()),
               ),
             ),
         ],
@@ -238,25 +240,23 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _logOutSettings(BuildContext context) {
-    
     return Container(
       margin: EdgeInsets.only(top: 20, left: 24, right: 24),
       transform: Matrix4.translationValues(0, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
           SizedBox(height: 8),
-          
+
           ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_out.png', 
+            imageUrl: 'assets/profile_assets/icons/ic_out.png',
             bgImage: Color(0XFFFFE0D5),
-            menuName: 'Keluar Akun', 
-            placeHolder: '', 
-            onTap: (){
+            menuName: 'Keluar Akun',
+            placeHolder: '',
+            onTap: () {
               // Memanggil fungsi logout saat item di-tap
               _logOut(context);
-            }
+            },
           ),
         ],
       ),
@@ -265,241 +265,250 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
 Widget _buildHeaderSection(BuildContext context, dataUser) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.25,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppColors.gradasi01,
-        borderRadius: BorderRadius.only(
-          bottomRight: Radius.circular(20),
-          bottomLeft: Radius.circular(20),
-        )
+  return Container(
+    height: MediaQuery.of(context).size.height * 0.18,
+    width: double.infinity,
+    decoration: BoxDecoration(
+      gradient: AppColors.gradasi01,
+      borderRadius: BorderRadius.only(
+        bottomRight: Radius.circular(20),
+        bottomLeft: Radius.circular(20),
       ),
-      child: Stack(
-        children: [
-          CustomImageView(
-            imagePath: "assets/home_assets/images/img_star.png",
-            height: MediaQuery.of(context).size.height * 0.2,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          Positioned(
-            top: 90,
-            left: 24,
-            right: 24,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: () => _showFeatureUserNotAvailableDialog(context),
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 75,
-                            height: 75,
+    ),
+    child: Stack(
+      children: [
+        CustomImageView(
+          imagePath: "assets/home_assets/images/img_star.png",
+          height: MediaQuery.of(context).size.height * 0.15,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        Positioned(
+          top:65,
+          left: 24,
+          right: 24,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () => _showFeatureUserNotAvailableDialog(context),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 75,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            border: BoxBorder.all(
+                              color: AppColors.primaryWhite,
+                              width: 0.3,
+                            ),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Image.asset(
+                            'assets/profile_assets/icons/ic_farmer.png',
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 23,
+                            height: 23,
+                            padding: EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              border: BoxBorder.all(
-                                color: AppColors.primaryWhite,
-                                width: 0.3,
-                              ),
+                              color: AppColors.primaryWhite,
                               borderRadius: BorderRadius.circular(100),
                             ),
-                            child: Image.asset('assets/profile_assets/icons/ic_farmer.png'),),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                width: 23,
-                                height: 23,
-                                padding: EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryWhite,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: Image.asset('assets/profile_assets/icons/ic_pencil.png'),
-                                ),
+                            child: Image.asset(
+                              'assets/profile_assets/icons/ic_pencil.png',
                             ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 17), 
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Peternakan $dataUser',
-                          style: AppTextStyle.medium.copyWith(fontSize: 20, color: AppColors.white100),
-                        ),
-                        Text(
-                          'by $dataUser',
-                          style: AppTextStyle.extraBold.copyWith(
-                            fontSize: MediaQuery.of(context).size.width * 0.02,  // Adjust font size dynamically
-                            color: AppColors.white100,
-                            overflow: TextOverflow.ellipsis,  // Ensures the text doesn't overflow
                           ),
-                          maxLines: 1,  // Ensures the text is truncated in case of overflow
                         ),
                       ],
                     ),
-                  ],
-                ),
-                
-              ],
-            ),
-          ),
-          Positioned(
-            right: 5,
-            bottom: 0,
-            child: Row(
-                          children: [
-                            Column(
-                              children: [
-                                SizedBox(height: 12,),
-                                CustomImageView(
-                                  imagePath: "assets/home_assets/images/img_amelia_1_3.png",
-                                  height: 28,
-                                  width: 32,
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 8),
-                            CustomImageView(
-                              imagePath: "assets/home_assets/images/img_amelia_1_4.png",
-                              height: 40,
-                              width: 32,
-                            ),
-                          ],
+                  ),
+                  SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Peternakan',
+                        style: AppTextStyle.medium.copyWith(
+                          fontSize: 18,
+                          color: AppColors.white100,
                         ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        dataUser,
+                        style: AppTextStyle.extraBold.copyWith(
+                          fontSize: 20,
+                          color: AppColors.white100,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 0,
-            left: 31,
-            child: Row(
-              children: [
-                CustomImageView(
-                  imagePath: "assets/home_assets/images/img_amelia_1_1.png",
-                  height: 40,
-                  width: 28,
-                ),
-              ],
-            ),
+        ),
+        Positioned(
+          right: 5,
+          bottom: 0,
+          child: Row(
+            children: [
+              Column(
+                children: [
+                  SizedBox(height: 12),
+                  CustomImageView(
+                    imagePath: "assets/home_assets/images/img_amelia_1_3.png",
+                    height: 28,
+                    width: 32,
+                  ),
+                ],
+              ),
+              SizedBox(width: 8),
+              CustomImageView(
+                imagePath: "assets/home_assets/images/img_amelia_1_4.png",
+                height: 40,
+                width: 32,
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: Row(
-              children: [
-                CustomImageView(
-                      imagePath: "assets/home_assets/images/img_amelia_1_2.png",
-                      height: 36,
-                      width: 32,
-                    ),
-              ],
-            ),
+        ),
+        Positioned(
+          bottom: 0,
+          left: 31,
+          child: Row(
+            children: [
+              CustomImageView(
+                imagePath: "assets/home_assets/images/img_amelia_1_1.png",
+                height: 40,
+                width: 28,
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          child: Row(
+            children: [
+              CustomImageView(
+                imagePath: "assets/home_assets/images/img_amelia_1_2.png",
+                height: 36,
+                width: 32,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _pribadiSettings(BuildContext context, dataUser, email) {
-    return Container(
-      margin: EdgeInsets.only(top: 20, left: 24, right: 24),
-      transform: Matrix4.translationValues(0, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pengaturan Pribadi',
-            style: AppTextStyle.semiBold.copyWith(fontSize: 16),
-          ),
-          SizedBox(height: 8),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_user.png', 
-            bgImage: Color(0XFFFFE0D5),
-            menuName: 'Username', 
-            placeHolder: dataUser, 
-            onTap: (){
-              _showFeatureUserNotAvailableDialog(context);
-            }
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_mail.png', 
-            bgImage: Color(0XFFFFF0C8),
-            menuName: 'Email', 
-            placeHolder: email, 
-            onTap: (){
-              _showFeatureUserNotAvailableDialog(context);
-            }
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_lock.png', 
-            bgImage: Color(0XFFD4F4F1),
-            menuName: 'Kata Sandi', 
-            placeHolder: '********', 
-            onTap: (){
-              _showFeatureUserNotAvailableDialog(context);
-            }
-          ),
-        ],
-      ),
-    );
-  }
+Widget _pribadiSettings(BuildContext context, dataUser, email) {
+  return Container(
+    margin: EdgeInsets.only(top: 20, left: 24, right: 24),
+    transform: Matrix4.translationValues(0, 0, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Pengaturan Pribadi',
+          style: AppTextStyle.semiBold.copyWith(fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_user.png',
+          bgImage: Color(0XFFFFE0D5),
+          menuName: 'Username',
+          placeHolder: dataUser,
+          onTap: () {
+            _showFeatureUserNotAvailableDialog(context);
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_mail.png',
+          bgImage: Color(0XFFFFF0C8),
+          menuName: 'Email',
+          placeHolder: email,
+          onTap: () {
+            _showFeatureUserNotAvailableDialog(context);
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_lock.png',
+          bgImage: Color(0XFFD4F4F1),
+          menuName: 'Kata Sandi',
+          placeHolder: '********',
+          onTap: () {
+            _showFeatureUserNotAvailableDialog(context);
+          },
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _aplikasiSettings(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(top: 20, left: 24, right: 24),
-      transform: Matrix4.translationValues(0, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pengaturan Aplikasi',
-            style: AppTextStyle.semiBold.copyWith(fontSize: 16),
-          ),
-          SizedBox(height: 8),
-          FutureBuilder<Map<String, dynamic>?>(
-            future: LocationStorageService.loadLocation(),
-            builder: (context, snapshot) {
-              final address = snapshot.hasData ? snapshot.data!['address'] : null;
-              
-              return ProfileSettingItem(
-                imageUrl: 'assets/profile_assets/icons/ic_loc.png', 
-                bgImage: Color(0XFFDCE8F7),
-                menuName: 'Lokasi Ternak', 
-                placeHolder: snapshot.connectionState == ConnectionState.waiting
-                    ? 'Memuat...'
-                    : address ?? 'Tambahkan Lokasi',
-                onTap: () {
-                  _showFeatureLocDialog(context);
-                }
-              );
-            },
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_bell.png', 
-            bgImage: Color(0XFFFFF0C8),
-            menuName: 'Pemberitahuan', 
-            placeHolder: 'Izinkan', 
-            onTap: (){
-              _showFeatureNotAvailableDialog(context);
-            }
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_mode.png', 
-            bgImage: Color(0XFFF8D5FF),
-            menuName: 'Mode Gelap', 
-            placeHolder: 'Terang', 
-            onTap: (){
-              _showFeatureNotAvailableDialog(context);
-            }
-          ),
-        ],
-      ),
-    );
-  }
+Widget _aplikasiSettings(BuildContext context) {
+  return Container(
+    margin: EdgeInsets.only(top: 20, left: 24, right: 24),
+    transform: Matrix4.translationValues(0, 0, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Pengaturan Aplikasi',
+          style: AppTextStyle.semiBold.copyWith(fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        FutureBuilder<Map<String, dynamic>?>(
+          future: LocationStorageService.loadLocation(),
+          builder: (context, snapshot) {
+            final address = snapshot.hasData ? snapshot.data!['address'] : null;
+
+            return ProfileSettingItem(
+              imageUrl: 'assets/profile_assets/icons/ic_loc.png',
+              bgImage: Color(0XFFDCE8F7),
+              menuName: 'Lokasi Ternak',
+              placeHolder: snapshot.connectionState == ConnectionState.waiting
+                  ? 'Memuat...'
+                  : address ?? 'Tambahkan Lokasi',
+              onTap: () {
+                _showFeatureLocDialog(context);
+              },
+            );
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_bell.png',
+          bgImage: Color(0XFFFFF0C8),
+          menuName: 'Pemberitahuan',
+          placeHolder: 'Izinkan',
+          onTap: () {
+            _showFeatureNotAvailableDialog(context);
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_mode.png',
+          bgImage: Color(0XFFF8D5FF),
+          menuName: 'Mode Gelap',
+          placeHolder: 'Terang',
+          onTap: () {
+            _showFeatureNotAvailableDialog(context);
+          },
+        ),
+      ],
+    ),
+  );
+}
 
 // Fungsi untuk menampilkan custom modal
 void _showFeatureNotAvailableDialog(BuildContext context) {
@@ -512,16 +521,11 @@ void _showFeatureNotAvailableDialog(BuildContext context) {
         ),
         title: const Text(
           'Informasi',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         content: const Text(
           'Mohon maaf saat ini fitur belum dapat digunakan',
-          style: TextStyle(
-            fontSize: 16,
-          ),
+          style: TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
@@ -553,16 +557,11 @@ void _showFeatureLocDialog(BuildContext context) {
         ),
         title: const Text(
           'Informasi',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         content: const Text(
           'Anda dapat mengubah lokasi saat ini pada halaman utama',
-          style: TextStyle(
-            fontSize: 16,
-          ),
+          style: TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
@@ -608,16 +607,11 @@ void _showFeatureUserNotAvailableDialog(BuildContext context) {
         ),
         title: const Text(
           'Informasi',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         content: const Text(
           'Mohon maaf saat ini fitur untuk mengubah data pengguna belum dapat digunakan',
-          style: TextStyle(
-            fontSize: 16,
-          ),
+          style: TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
@@ -639,55 +633,52 @@ void _showFeatureUserNotAvailableDialog(BuildContext context) {
   );
 }
 
-  Widget _panduanSettings(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(top: 20, left: 24, right: 24),
-      transform: Matrix4.translationValues(0, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Panduan Aplikasi',
-            style: AppTextStyle.semiBold.copyWith(fontSize: 16),
-          ),
-          SizedBox(height: 8),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_loc.png', 
-            bgImage: Color(0XFFD5E7FF),
-            menuName: 'FAQ', 
-            placeHolder: '', 
-            onTap: (){
-              Uri url = Uri.parse('https://ternakpro.id/#faq');
-              launchUrl(url);
-              // Navigator.pushNamed(context, '/ternakpro-web');
-            }
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_feature.png', 
-            bgImage: Color(0XFFFFEDD5),
-            menuName: 'Fitur', 
-            placeHolder: '', 
-            onTap: (){
-              Uri url = Uri.parse('https://ternakpro.id/#fitur');
-              launchUrl(url);
-              // Navigator.pushNamed(context, '/ternakpro-web');
-            }
-          ),
-          ProfileSettingItem(
-            imageUrl: 'assets/profile_assets/icons/ic_phone.png', 
-            bgImage: Color(0XFFD5F8F7),
-            menuName: 'Hubungi Kami', 
-            placeHolder: '', 
-            onTap: (){
-              Uri url = Uri.parse('https://ternakpro.id');
-              launchUrl(url);
-              // Navigator.pushNamed(context, '/ternakpro-web');
-            }
-          ),
-        ],
-      ),
-    );
-  }
-
-  
-
+Widget _panduanSettings(BuildContext context) {
+  return Container(
+    margin: EdgeInsets.only(top: 20, left: 24, right: 24),
+    transform: Matrix4.translationValues(0, 0, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Panduan Aplikasi',
+          style: AppTextStyle.semiBold.copyWith(fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_loc.png',
+          bgImage: Color(0XFFD5E7FF),
+          menuName: 'FAQ',
+          placeHolder: '',
+          onTap: () {
+            Uri url = Uri.parse('https://ternakpro.id/#faq');
+            launchUrl(url);
+            // Navigator.pushNamed(context, '/ternakpro-web');
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_feature.png',
+          bgImage: Color(0XFFFFEDD5),
+          menuName: 'Fitur',
+          placeHolder: '',
+          onTap: () {
+            Uri url = Uri.parse('https://ternakpro.id/#fitur');
+            launchUrl(url);
+            // Navigator.pushNamed(context, '/ternakpro-web');
+          },
+        ),
+        ProfileSettingItem(
+          imageUrl: 'assets/profile_assets/icons/ic_phone.png',
+          bgImage: Color(0XFFD5F8F7),
+          menuName: 'Hubungi Kami',
+          placeHolder: '',
+          onTap: () {
+            Uri url = Uri.parse('https://ternakpro.id');
+            launchUrl(url);
+            // Navigator.pushNamed(context, '/ternakpro-web');
+          },
+        ),
+      ],
+    ),
+  );
+}

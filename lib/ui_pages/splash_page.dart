@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ternak_pro/ui_pages/onboarding/onboarding_1.dart';
@@ -15,15 +14,60 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  
   final ApiService _apiService = ApiService();
+
+  String? _token;
+  String? _userId;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
     _resetBannerSeen();
-    // _checkLogin(context);
-    _checkLoginStatus(context);
+    _loadCredentials();
+    _startSplashFlow();
+  }
+
+  Future<void> _loadCredentials() async {
+    final credential = await _apiService.loadCredentials();
+    if (mounted) {
+      setState(() {
+        _token = credential['token'];
+        _userId = credential['user_id'];
+      });
+    }
+  }
+
+  Future<void> _startSplashFlow() async {
+    await Future.wait([
+      _loadCredentials(),
+      Future.delayed(const Duration(seconds: 5)),
+    ]);
+
+    if (!mounted || _hasNavigated) {
+      return;
+    }
+
+    _proceedNavigation();
+  }
+
+  void _proceedNavigation() {
+    if (_hasNavigated || !mounted) {
+      return;
+    }
+
+    _hasNavigated = true;
+
+    if (_token != null && _userId != null) {
+      // User is logged in, go to MainPage
+      Navigator.pushReplacementNamed(context, '/main');
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Onboarding1()),
+      );
+      // User is not logged in, go to Onboarding1
+    }
   }
 
   Future<void> _resetBannerSeen() async {
@@ -59,8 +103,6 @@ class _SplashPageState extends State<SplashPage> {
   //   }
   // }
 
-  
-
   // // Fungsi untuk membuka URL
   // _launchURL(String url) async {
   //   final urlUri = Uri.parse(url);
@@ -72,27 +114,7 @@ class _SplashPageState extends State<SplashPage> {
   // }
 
   Future<void> _checkLoginStatus(BuildContext context) async {
-    // Delay navigation for 3 seconds
-    Timer(const Duration(seconds: 3), () async {
-      final credential = await _apiService.loadCredentials();
-      final token = credential['token'];
-      final userId = credential['user_id']; // Memeriksa apakah user_id disimpan
-
-      // Check if the widget is still mounted before using the context
-      if (!mounted) return;
-
-      if (token != null && userId != null) {
-      // if(false) {
-        // User is logged in, go to MainPage
-        Navigator.pushReplacementNamed(context, '/main');
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Onboarding1()),
-        );
-        // User is not logged in, go to Onboarding1
-      }
-    });
+    // This function is no longer needed - remove it
   }
 
   @override
@@ -103,37 +125,40 @@ class _SplashPageState extends State<SplashPage> {
     double logoWidth = screenWidth * 0.4; // 60% lebar layar untuk logo
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Main content
-          Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.gradasi01, // Gradient background
-            ),
-            child: Center(
-              child: Image.asset(
-                "assets/splash_logo.png",
-                key: const ValueKey('splash_logo'),
-                width: logoWidth,
+      body: GestureDetector(
+        onTap: _proceedNavigation,
+        child: Stack(
+          children: [
+            // Main content
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.gradasi01, // Gradient background
               ),
-            ),
-          ),
-          // Copyright text at the bottom
-          Positioned(
-            bottom: 16.0, // Distance from the bottom of the screen
-            left: 0,
-            right: 0,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                'Copyright © 2025\nAll rights reserved.',
-                style: AppTextStyle.medium.copyWith(
-                  color: AppColors.white100,
+              child: Center(
+                child: Image.asset(
+                  "assets/splash_logo.png",
+                  key: const ValueKey('splash_logo'),
+                  width: logoWidth,
                 ),
               ),
             ),
-          ),
-        ],
+            // Copyright text at the bottom
+            Positioned(
+              bottom: 16.0, // Distance from the bottom of the screen
+              left: 0,
+              right: 0,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Text(
+                  'Copyright © 2025\nAll rights reserved.',
+                  style: AppTextStyle.medium.copyWith(
+                    color: AppColors.white100,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

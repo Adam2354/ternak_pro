@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
 import '../../services/api_service.dart';
 import '../../shared/theme.dart';
 import '../../shared/widgets/custom_image_view.dart';
 import '../../shared/widgets/onboarding_buttom.dart';
-import 'package:intl/intl.dart';
+import 'hasil_rekomendasi_ternak_page.dart';
 
-import '../../shared/widgets/rekomendasi_ternak.dart';
-import 'hasil_rekomendasi_ternak_page.dart'; // Untuk format tanggal
-
-// Widget untuk Input Text
 class CustomInputRekomendasiTernakField extends StatelessWidget {
   final String label;
   final String hintText;
@@ -32,70 +30,89 @@ class CustomInputRekomendasiTernakField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
         Text(
           label,
-          style: TextStyle(
+
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
+
             fontSize: 14,
+
             color: Colors.black,
           ),
         ),
-        SizedBox(height: 3),
+
+        const SizedBox(height: 3),
+
         TextField(
           maxLines: maxLines,
+
           controller: controller,
+
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: TextStyle(fontSize: 14, color: Colors.black54),
+
+            hintStyle: const TextStyle(fontSize: 14, color: Colors.black54),
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.black54),
+
+              borderSide: const BorderSide(color: Colors.black54),
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 14),
-            prefixText: isHarga ? 'Rp. ' : '', // Menambahkan "Rp." jika isHarga true
-            prefixStyle: TextStyle(
+
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 13,
+              horizontal: 14,
+            ),
+
+            prefixText: isHarga ? 'Rp. ' : '',
+
+            prefixStyle: const TextStyle(
               fontWeight: FontWeight.w600,
+
               color: Colors.black,
+
               fontSize: 14,
             ),
           ),
+
           keyboardType: keyboardTipe,
-          inputFormatters: [
-            if (isHarga) _moneyFormatter(), // Format uang jika isHarga true
-          ],
+
+          inputFormatters: [if (isHarga) _moneyFormatter()],
         ),
-        SizedBox(height: 16),
+
+        const SizedBox(height: 16),
       ],
     );
   }
 
-  // Formatter untuk menambahkan pemisah ribuan otomatis
   TextInputFormatter _moneyFormatter() {
     return TextInputFormatter.withFunction((oldValue, newValue) {
-      // Hapus semua karakter non-digit
       String digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-      // Format angka dengan pemisah ribuan/jutaan/dst.
-      final formatter = NumberFormat('#,##0', 'id_ID'); // Bisa panjang tak terbatas
+      final formatter = NumberFormat('#,##0', 'id_ID');
+
       String formatted = '';
+
       if (digitsOnly.isNotEmpty) {
         try {
           formatted = formatter.format(int.parse(digitsOnly));
         } catch (e) {
-          formatted = oldValue.text; // fallback jika parsing gagal
+          formatted = oldValue.text;
         }
       }
 
       return TextEditingValue(
         text: formatted,
+
         selection: TextSelection.collapsed(offset: formatted.length),
       );
     });
   }
 }
 
-// Widget untuk Dropdown
 class CustomDropdownInputTernak extends StatefulWidget {
   final String label;
   final String hintText;
@@ -103,7 +120,8 @@ class CustomDropdownInputTernak extends StatefulWidget {
   final String selectedValue;
   final Function(String) onChanged;
 
-  const CustomDropdownInputTernak({super.key, 
+  const CustomDropdownInputTernak({
+    super.key,
     required this.label,
     required this.hintText,
     required this.options,
@@ -112,152 +130,204 @@ class CustomDropdownInputTernak extends StatefulWidget {
   });
 
   @override
-  State<CustomDropdownInputTernak> createState() => _CustomDropdownInputTernakState();
+  State<CustomDropdownInputTernak> createState() =>
+      _CustomDropdownInputTernakState();
 }
 
-class _CustomDropdownInputTernakState
-    extends State<CustomDropdownInputTernak> {
+class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
   late String selectedValue;
 
   @override
   void initState() {
     super.initState();
-    // Initialize selectedValue with the initial value from the parent widget
+
     selectedValue = widget.selectedValue;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
         Text(
           widget.label,
-          style: AppTextStyle.semiBold.copyWith(fontSize: 14, color: AppColors.black100),
+
+          style: AppTextStyle.semiBold.copyWith(
+            fontSize: 14,
+
+            color: AppColors.black100,
+          ),
         ),
-        SizedBox(height: 3),
+
+        const SizedBox(height: 3),
+
         GestureDetector(
           onTap: () {
-            // Show the options as a dialog or bottom sheet
             _showOptionsDialog(context);
           },
+
           child: Container(
-            padding: EdgeInsets.all(13),
+            padding: const EdgeInsets.all(13),
+
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.black01),
+
               borderRadius: BorderRadius.circular(10),
             ),
+
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
               children: [
                 Text(
-                  widget.selectedValue.isEmpty ? widget.hintText : widget.selectedValue,
+                  widget.selectedValue.isEmpty
+                      ? widget.hintText
+                      : widget.selectedValue,
+
                   style: AppTextStyle.medium.copyWith(
                     fontSize: 14,
-                    color: widget.selectedValue.isEmpty ? AppColors.black01 : AppColors.black100, // Color based on selection
+
+                    color: widget.selectedValue.isEmpty
+                        ? AppColors.black01
+                        : AppColors.black100,
                   ),
                 ),
+
                 Image.asset(
                   'assets/home_assets/icons/ic_dropdown.png',
+
                   width: 16,
+
                   height: 16,
                 ),
               ],
             ),
           ),
         ),
-        SizedBox(height: 16),
+
+        const SizedBox(height: 16),
       ],
     );
   }
 
-  // Function to show the options as a dialog or bottom sheet
   void _showOptionsDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: AppColors.primaryWhite,
-        
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: widget.options.map((option) {
-              return RadioListTile<String>(
-                title: Text(
-                  option,
-                  style: AppTextStyle.medium.copyWith(fontSize: 16, color: AppColors.black100),
-                ),
-                value: option,
-                groupValue: widget.selectedValue,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedValue = value!;
-                  });
-                  widget.onChanged(value!); // Update selected value
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                activeColor: AppColors.green01, // Color of the radio button's outer circle when selected
-                visualDensity: VisualDensity.compact,
-                toggleable: true, // Allows the radio button to be toggled between on/off state
-                // Set the color of the inner dot when selected
-                fillColor: WidgetStateProperty.all(AppColors.green01), 
-              );
+    showDialog(
+      context: context,
 
-            }).toList(),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.primaryWhite,
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      );
-    },
-  );
-}
+
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 10,
+          ),
+
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: widget.options.map((option) {
+                return RadioListTile<String>(
+                  title: Text(
+                    option,
+
+                    style: AppTextStyle.medium.copyWith(
+                      fontSize: 16,
+
+                      color: AppColors.black100,
+                    ),
+                  ),
+
+                  value: option,
+
+                  groupValue: widget.selectedValue,
+
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedValue = value!;
+                    });
+
+                    widget.onChanged(value!);
+
+                    Navigator.of(context).pop();
+                  },
+
+                  activeColor: AppColors.green01,
+
+                  visualDensity: VisualDensity.compact,
+
+                  fillColor: WidgetStateProperty.all(AppColors.green01),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-// Header dengan ikon back
 Widget _buildHeaderSection(BuildContext context) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.12,
+
     width: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppColors.gradasi01,
-    ),
+
+    decoration: BoxDecoration(gradient: AppColors.gradasi01),
+
     child: Stack(
       children: [
         CustomImageView(
           imagePath: "assets/home_assets/images/img_star.png",
+
           height: MediaQuery.of(context).size.height * 0.12,
+
           width: double.infinity,
+
           fit: BoxFit.cover,
         ),
+
         Positioned(
           top: 60,
+
           left: 24,
+
           right: 24,
+
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // Back Icon Button
               InkWell(
                 onTap: () {
                   Navigator.of(context).pop();
                 },
+
                 child: Image.asset(
                   'assets/data_ternak_assets/icons/ic_back.png',
+
                   width: 24,
+
                   height: 24,
                 ),
               ),
-              SizedBox(width: 10),
-              // Title Section
+
+              const SizedBox(width: 10),
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
                   Text(
                     'Rekomendasi Ternak Potensial',
-                    style: AppTextStyle.medium.copyWith(fontSize: 20, color: AppColors.white100),
+
+                    style: AppTextStyle.medium.copyWith(
+                      fontSize: 20,
+
+                      color: AppColors.white100,
+                    ),
                   ),
                 ],
               ),
@@ -269,224 +339,210 @@ Widget _buildHeaderSection(BuildContext context) {
   );
 }
 
-// Halaman Utama
 class RekomendasiTernakPage extends StatefulWidget {
   const RekomendasiTernakPage({super.key});
 
   @override
-  RekomendasiTernakPageState createState() => RekomendasiTernakPageState();
+  State<RekomendasiTernakPage> createState() => _RekomendasiTernakPageState();
 }
 
-class RekomendasiTernakPageState extends State<RekomendasiTernakPage> {
-  final TextEditingController _lokasiController = TextEditingController();
+class _RekomendasiTernakPageState extends State<RekomendasiTernakPage> {
   final TextEditingController _panjangLahanController = TextEditingController();
+
   final TextEditingController _lebarLahanController = TextEditingController();
+
   final TextEditingController _modalController = TextEditingController();
 
   String _selectedPengalaman = '';
-  String _selectedWaktuPerawatan = '';
-  String _selectedGoal = ''; // Tambah untuk goal
-  List<String> _selectedAvailableFeed = []; // Tambah untuk available_feed
-  bool _isLoading = false; // State untuk loading
-  String? _errorMessage; // State untuk error
 
-  // Opsi untuk dropdown (sesuai backend)
-  final List<String> _goalOptions = ['daging', 'telur', 'susu', 'bibit', 'lainnya'];
-  final List<String> _feedOptions = ['rumput', 'konsentrat', 'dedak', 'jagung'];
+  String _selectedWaktuPerawatan = '';
+
+  bool _isLoading = false;
+
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.12),
-        child: _buildHeaderSection(context), // Asumsikan sudah ada
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.12,
+        ),
+
+        child: _buildHeaderSection(context),
       ),
+
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+
               children: [
-                // Error message jika ada
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
+
                     child: Text(
                       _errorMessage!,
-                      style: AppTextStyle.regular.copyWith(color: AppColors.primaryRed),
-                    ),
-                  ),
-                // Lokasi
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/rekomendasi_ternak_assets/icons/ic_pin_location.png',
-                      width: 30,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () async {
-                          final result = await showDialog<Map<String, dynamic>>(
-                            context: context,
-                            builder: (context) => LocationPickerDialog(
-                              initialProvince: _lokasiController.text, // Jika ada nilai awal
-                            ),
-                          );
-                          if (result != null) {
-                            setState(() {
-                              _lokasiController.text = result['province'] ?? ''; // Set provinsi sebagai region
-                              // Opsional: Simpan koordinat jika perlu nanti
-                            });
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _lokasiController.text.isEmpty ? 'Pilih Provinsi' : _lokasiController.text,
-                            style: AppTextStyle.regular,
-                          ),
-                        ),
+
+                      style: AppTextStyle.regular.copyWith(
+                        color: AppColors.primaryRed,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Panjang dan Lebar Lahan
+                  ),
+
                 Row(
                   children: [
                     Image.asset(
                       'assets/rekomendasi_ternak_assets/icons/ic_location_farm.png',
+
                       width: 30,
+
                       fit: BoxFit.cover,
                     ),
+
                     const SizedBox(width: 8),
+
                     Expanded(
                       child: CustomInputRekomendasiTernakField(
                         label: 'Panjang Lahan (Meter)',
-                        hintText: '20',
+
+                        hintText: '10',
+
                         controller: _panjangLahanController,
+
                         keyboardTipe: TextInputType.number,
                       ),
                     ),
+
                     const SizedBox(width: 8),
+
                     Expanded(
                       child: CustomInputRekomendasiTernakField(
                         label: 'Lebar Lahan (Meter)',
-                        hintText: '20',
+
+                        hintText: '10',
+
                         controller: _lebarLahanController,
+
                         keyboardTipe: TextInputType.number,
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
-                // Modal (tidak digunakan di backend, tapi tetap ada di UI)
+
                 Row(
                   children: [
                     Image.asset(
                       'assets/rekomendasi_ternak_assets/icons/ic_money_banyak.png',
+
                       width: 30,
+
                       fit: BoxFit.cover,
                     ),
+
                     const SizedBox(width: 8),
+
                     Expanded(
                       child: CustomInputRekomendasiTernakField(
                         label: 'Modal Tersedia',
-                        hintText: '2.000.000',
+
+                        hintText: '5.000.000',
+
                         controller: _modalController,
+
                         isHarga: true,
+
                         keyboardTipe: TextInputType.number,
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
-                // Waktu Perawatan
+
                 Row(
                   children: [
                     Image.asset(
                       'assets/rekomendasi_ternak_assets/icons/ic_clock.png',
+
                       width: 30,
+
                       fit: BoxFit.cover,
                     ),
+
                     const SizedBox(width: 8),
+
                     Expanded(
                       child: CustomDropdownInputTernak(
-                        label: 'Waktu Perawatan Yang Dimiliki',
+                        label: 'Waktu Perawatan',
+
                         hintText: 'Pilih Salah Satu',
-                        options: ['Pagi', 'Siang', 'Sore', 'Sepanjang Hari'],
+
+                        options: const [
+                          '< 1 jam/hari',
+                          '1 - 2 jam/hari',
+                          '2 - 4 jam/hari',
+                          '4 - 6 jam/hari',
+                          '> 6 jam/hari',
+                        ],
+
                         selectedValue: _selectedWaktuPerawatan,
-                        onChanged: (value) => setState(() => _selectedWaktuPerawatan = value),
+
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedWaktuPerawatan = value;
+                          });
+                        },
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
-                // Pengalaman
+
                 Row(
                   children: [
                     Image.asset(
                       'assets/rekomendasi_ternak_assets/icons/ic_farmer.png',
+
                       width: 30,
+
                       fit: BoxFit.cover,
                     ),
+
                     const SizedBox(width: 8),
+
                     Expanded(
                       child: CustomDropdownInputTernak(
                         label: 'Pengalaman Beternak',
+
                         hintText: 'Pilih Tingkatan',
-                        options: ['Pemula', 'Menengah', 'Ahli'],
+
+                        options: const [
+                          'Belum Pernah',
+
+                          '< 1 Tahun',
+
+                          '1 - 3 Tahun',
+
+                          '3 - 5 Tahun',
+
+                          '> 5 Tahun',
+                        ],
+
                         selectedValue: _selectedPengalaman,
-                        onChanged: (value) => setState(() => _selectedPengalaman = value),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Tujuan Beternak (Goal)
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/rekomendasi_ternak_assets/icons/ic_bow.png', // Asumsi ada ikon
-                      width: 30,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: CustomDropdownInputTernak(
-                        label: 'Tujuan Beternak',
-                        hintText: 'Pilih Tujuan',
-                        options: ['Daging', 'Telur', 'Susu', 'Bibit', 'Lainnya'],
-                        selectedValue: _selectedGoal,
-                        onChanged: (value) => setState(() => _selectedGoal = value),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Pakan Tersedia (Multiple Selection)
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/rekomendasi_ternak_assets/icons/ic_leaf.png', // Asumsi ada ikon
-                      width: 30,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: CustomMultiSelectDropdown(
-                        label: 'Pakan Tersedia',
-                        hintText: 'Pilih Pakan',
-                        options: _feedOptions,
-                        selectedValues: _selectedAvailableFeed,
-                        onChanged: (values) => setState(() => _selectedAvailableFeed = values),
+
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedPengalaman = value;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -494,72 +550,125 @@ class RekomendasiTernakPageState extends State<RekomendasiTernakPage> {
               ],
             ),
           ),
-          // Loading overlay
+
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
+
       bottomNavigationBar: BottomActionButton(
         onPressed: _handleGetRecommendation,
       ),
     );
   }
 
-  // Handler untuk tombol rekomendasi
   Future<void> _handleGetRecommendation() async {
-    // Validasi input
-    if (_lokasiController.text.isEmpty ||
+    if (_modalController.text.isEmpty ||
         _panjangLahanController.text.isEmpty ||
         _lebarLahanController.text.isEmpty ||
-        _selectedGoal.isEmpty ||
-        _selectedAvailableFeed.isEmpty ||
-        _selectedWaktuPerawatan.isEmpty ||
-        _selectedPengalaman.isEmpty) {
+        _selectedPengalaman.isEmpty ||
+        _selectedWaktuPerawatan.isEmpty) {
       setState(() {
-        _errorMessage = 'Semua field harus diisi!';
+        _errorMessage = 'Semua field wajib diisi!';
       });
-      return;
-    }
 
-    // Parse numeric inputs
-    final landLength = double.tryParse(_panjangLahanController.text);
-    final landWidth = double.tryParse(_lebarLahanController.text);
-
-    if (landLength == null || landWidth == null || landLength < 1 || landWidth < 1) {
-      setState(() {
-        _errorMessage = 'Panjang dan lebar lahan harus angka valid (min 1)';
-      });
       return;
     }
 
     setState(() {
       _isLoading = true;
+
       _errorMessage = null;
     });
 
     try {
-      // Panggil API
+      String normalizeNumber(String value) {
+        return value.replaceAll(RegExp(r'[^0-9]'), '');
+      }
+
+      final modalText = normalizeNumber(_modalController.text);
+      final panjangText = normalizeNumber(_panjangLahanController.text);
+      final lebarText = normalizeNumber(_lebarLahanController.text);
+
+      final modal = double.tryParse(modalText);
+      final panjang = double.tryParse(panjangText);
+      final lebar = double.tryParse(lebarText);
+
+      if (modal == null || panjang == null || lebar == null) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Input angka tidak valid';
+        });
+        return;
+      }
+
+      final luas = panjang * lebar;
+
+      int waktu = 1;
+      switch (_selectedWaktuPerawatan) {
+        case '< 1 jam/hari':
+          waktu = 1;
+          break;
+
+        case '1 - 2 jam/hari':
+          waktu = 2;
+          break;
+
+        case '2 - 4 jam/hari':
+          waktu = 3;
+          break;
+
+        case '4 - 6 jam/hari':
+          waktu = 4;
+          break;
+
+        case '> 6 jam/hari':
+          waktu = 5;
+          break;
+      }
+
+      String pengalaman = 'belum';
+
+      switch (_selectedPengalaman) {
+        case 'Belum Pernah':
+          pengalaman = 'belum';
+          break;
+
+        case '< 1 Tahun':
+          pengalaman = 'kurang_1_tahun';
+          break;
+
+        case '1 - 3 Tahun':
+          pengalaman = '1_3_tahun';
+          break;
+
+        case '3 - 5 Tahun':
+          pengalaman = '3_5_tahun';
+          break;
+
+        case '> 5 Tahun':
+          pengalaman = 'lebih_5_tahun';
+          break;
+      }
+
       final response = await ApiService().getRekomendasiTernak(
-        region: _lokasiController.text.trim(),
-        landLength: landLength,
-        landWidth: landWidth,
-        goal: _selectedGoal.toLowerCase(), // Sesuaikan dengan backend
-        availableFeed: _selectedAvailableFeed,
-        timeAvailability: _selectedWaktuPerawatan.toLowerCase().replaceAll(' ', '_'), // Sesuaikan dengan backend
-        experience: _selectedPengalaman.toLowerCase(),
+        modal: modal,
+        lahan: luas,
+        waktu: waktu,
+        pengalaman: pengalaman,
       );
 
-      // Navigasi ke halaman hasil
       Navigator.push(
         context,
+
         MaterialPageRoute(
           builder: (context) => HasilRekomendasiTernakPage(
             recommendationData: response['data'],
+            userModal: modal,
           ),
         ),
       );
@@ -576,148 +685,41 @@ class RekomendasiTernakPageState extends State<RekomendasiTernakPage> {
 
   @override
   void dispose() {
-    _lokasiController.dispose();
     _panjangLahanController.dispose();
+
     _lebarLahanController.dispose();
+
     _modalController.dispose();
+
     super.dispose();
   }
 }
 
-// Modifikasi BottomActionButton untuk menerima onPressed
 class BottomActionButton extends StatelessWidget {
   final VoidCallback onPressed;
+
   const BottomActionButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
+
       child: ClipRect(
         child: Opacity(
           opacity: 1.0,
+
           child: OnboardingButton(
             previous: false,
+
             text: "Lihat Rekomendasi ➜",
+
             width: double.infinity,
+
             onClick: onPressed,
           ),
         ),
       ),
-    );
-  }
-}
-
-// Widget placeholder untuk multi-select dropdown (sesuaikan dengan implementasi Anda)
-class CustomMultiSelectDropdown extends StatelessWidget {
-  final String label;
-  final String hintText;
-  final List<String> options;
-  final List<String> selectedValues;
-  final Function(List<String>) onChanged;
-
-  const CustomMultiSelectDropdown({
-    super.key,
-    required this.label,
-    required this.hintText,
-    required this.options,
-    required this.selectedValues,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyle.regular),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            // Implementasi multi-select (contoh sederhana)
-            final selected = await showDialog<List<String>>(
-              context: context,
-              builder: (context) => MultiSelectDialog(
-                options: options,
-                initialSelected: selectedValues,
-              ),
-            );
-            if (selected != null) {
-              onChanged(selected);
-            }
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              selectedValues.isEmpty ? hintText : selectedValues.join(', '),
-              style: AppTextStyle.regular.copyWith(
-                color: selectedValues.isEmpty ? AppColors.grey : AppColors.blackText,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Dialog untuk multi-select (contoh sederhana)
-class MultiSelectDialog extends StatefulWidget {
-  final List<String> options;
-  final List<String> initialSelected;
-
-  const MultiSelectDialog({super.key, required this.options, required this.initialSelected});
-
-  @override
-  _MultiSelectDialogState createState() => _MultiSelectDialogState();
-}
-
-class _MultiSelectDialogState extends State<MultiSelectDialog> {
-  late List<String> selected;
-
-  @override
-  void initState() {
-    super.initState();
-    selected = List.from(widget.initialSelected);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Pilih Pakan'),
-      content: SingleChildScrollView(
-        child: Column(
-          children: widget.options.map((option) {
-            return CheckboxListTile(
-              title: Text(option),
-              value: selected.contains(option),
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    selected.add(option);
-                  } else {
-                    selected.remove(option);
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, selected),
-          child: Text('OK'),
-        ),
-      ],
     );
   }
 }

@@ -45,12 +45,12 @@ class CacheService {
   static Future<bool> isCacheValid() async {
     final prefs = await SharedPreferences.getInstance();
     final String? lastCacheTimeString = prefs.getString(_lastCacheTimeKey);
-    
+
     if (lastCacheTimeString == null) return false;
-    
+
     final lastCacheTime = DateTime.parse(lastCacheTimeString);
     final now = DateTime.now();
-    
+
     return now.difference(lastCacheTime) < cacheDuration;
   }
 
@@ -60,8 +60,13 @@ class CacheService {
     await prefs.remove(_userDataKey);
     await prefs.remove(_tasksDataKey);
     await prefs.remove(_lastCacheTimeKey);
+    await prefs.remove(_tipsDataKey);
   }
 
+  static Future<void> clearTipsCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tipsDataKey);
+  }
 
   // Simpan tips data ke cache
   static Future<void> cacheTipsData(List<TipsItem> tipsData) async {
@@ -77,22 +82,25 @@ class CacheService {
   }
 
   // PERBAIKAN: Return List<TipsItem>
-static Future<List<TipsItem>?> getCachedTipsData() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final String? tipsDataString = prefs.getString(_tipsDataKey);
-    
-    if (tipsDataString != null && tipsDataString.isNotEmpty) {
-      final List<dynamic> tipsJsonList = json.decode(tipsDataString);
-      final tips = tipsJsonList.map((json) => TipsItem.fromJson(json)).toList();
-      print('📂 Loaded from cache: ${tips.length} tips');
-      return tips;
+  static Future<List<TipsItem>?> getCachedTipsData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? tipsDataString = prefs.getString(_tipsDataKey);
+
+      if (tipsDataString != null && tipsDataString.isNotEmpty) {
+        final List<dynamic> tipsJsonList = json.decode(tipsDataString);
+        final tips = tipsJsonList
+            .map((json) => TipsItem.fromJson(json))
+            .toList();
+        print('📂 Loaded from cache: ${tips.length} tips');
+        return tips;
+      }
+      print('📂 No cached tips found');
+      return null;
+    } catch (e) {
+      print('❌ Error loading cached tips: $e');
+      await clearTipsCache();
+      return null;
     }
-    print('📂 No cached tips found');
-    return null;
-  } catch (e) {
-    print('❌ Error loading cached tips: $e');
-    return null;
   }
-}
 }

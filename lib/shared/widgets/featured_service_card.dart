@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import 'custom_image_view.dart';
 
-
 class FeaturedServiceCardWidget extends StatelessWidget {
   final String iconPath;
   final String title;
   final String description;
   final LinearGradient gradient;
   final VoidCallback? onTap;
+  final double iconSize;
+  final double containerSize;
 
   const FeaturedServiceCardWidget({
     super.key,
@@ -18,6 +19,8 @@ class FeaturedServiceCardWidget extends StatelessWidget {
     required this.description,
     required this.gradient,
     this.onTap,
+    this.iconSize = 36,
+    this.containerSize = 45,
   });
 
   @override
@@ -34,8 +37,8 @@ class FeaturedServiceCardWidget extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 45,
-              height: 45,
+              width: containerSize,
+              height: containerSize,
               decoration: BoxDecoration(
                 color: AppColors.primaryWhite,
                 borderRadius: BorderRadius.circular(8),
@@ -43,8 +46,8 @@ class FeaturedServiceCardWidget extends StatelessWidget {
               child: Center(
                 child: CustomImageView(
                   imagePath: iconPath,
-                  height: 36,
-                  width: 36,
+                  height: iconSize,
+                  width: iconSize,
                 ),
               ),
             ),
@@ -55,14 +58,20 @@ class FeaturedServiceCardWidget extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyle.medium
-                        .copyWith(color: AppColors.primaryWhite, height: 18/14, fontSize: 14),
+                    style: AppTextStyle.medium.copyWith(
+                      color: AppColors.primaryWhite,
+                      height: 18 / 14,
+                      fontSize: 14,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(
                     description,
-                    style: AppTextStyle.medium
-                        .copyWith(color: AppColors.white50, height: 12/10, fontSize: 10),
+                    style: AppTextStyle.medium.copyWith(
+                      color: AppColors.white50,
+                      height: 12 / 10,
+                      fontSize: 10,
+                    ),
                   ),
                 ],
               ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -45,24 +44,30 @@ class LoginAppTextfield extends StatelessWidget {
             fontSize: 14,
           ),
           filled: true,
-          fillColor: const Color(0xFFF8F8F8),
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 14,
+            horizontal: 4,
+          ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFFD0D0D0),
+              width: 1.5,
+            ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: error ? AppColors.primaryRed : Colors.transparent,
-              width: 2,
+              color: error ? AppColors.primaryRed : const Color(0xFFD0D0D0),
+              width: error ? 2 : 1.5,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
               color: error ? AppColors.primaryRed : AppColors.primaryBlue,
-              width: 2,
+              width: 2.5,
             ),
           ),
         ),
