@@ -7,7 +7,7 @@ import '../models/HealtResponse.dart';
 import '../models/TernakRecommendationResponse.dart';
 
 class TernakRecommendationService {
-  static const String _baseUrl = 'https://ternakpro.id/api/v1';
+  static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
   static const Duration _timeout = Duration(seconds: 30);
 
   // ====== Helpers ======
@@ -28,7 +28,9 @@ class TernakRecommendationService {
   // ====== Health Check ======
   static Future<HealthResponse> healthCheck() async {
     final uri = Uri.parse('$_baseUrl/ai/rekomendasi-ternak/health');
-    final res = await http.get(uri, headers: await _headers()).timeout(_timeout);
+    final res = await http
+        .get(uri, headers: await _headers())
+        .timeout(_timeout);
 
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final jsonMap = jsonDecode(res.body) as Map<String, dynamic>;
@@ -43,28 +45,24 @@ class TernakRecommendationService {
   }
 
   // ====== Get Recommendation ======
-  /// Kirim data sesuai validasi controller Laravel:
-  /// region, land_length, land_width, goal (daging|telur|susu|bibit|lainnya),
-  /// available_feed (array string), time_availability (pagi|siang|sore|sepanjang_hari),
-  /// experience (pemula|menengah|ahli)
+  /// Kirim data ke endpoint Laravel resmi:
+  /// modal, lahan, waktu, pengalaman, dengan optional mode dan preset.
   static Future<TernakRecommendationResponse> getRecommendation({
-    required String region,
-    required num landLength,
-    required num landWidth,
-    required String goal,
-    required List<String> availableFeed,
-    required String timeAvailability,
-    required String experience,
+    required num modal,
+    required num lahan,
+    required int waktu,
+    required String pengalaman,
+    String? mode,
+    String? preset,
   }) async {
     final uri = Uri.parse('$_baseUrl/ai/rekomendasi-ternak');
     final payload = {
-      'region': region,
-      'land_length': landLength,
-      'land_width': landWidth,
-      'goal': goal,
-      'available_feed': availableFeed,
-      'time_availability': timeAvailability,
-      'experience': experience,
+      'modal': modal,
+      'lahan': lahan,
+      'waktu': waktu,
+      'pengalaman': pengalaman,
+      if (mode != null && mode.isNotEmpty) 'mode': mode,
+      if (preset != null && preset.isNotEmpty) 'preset': preset,
     };
 
     final res = await http
@@ -75,30 +73,34 @@ class TernakRecommendationService {
     final jsonMap = jsonDecode(bodyStr) as Map<String, dynamic>;
 
     // Laravel controller mengembalikan:
-    // - 200: { success: true, data: {...} }
+    // - 200: { success: true, message, data: { recommendations: [...] } }
     // - 422: { success: false, message, errors: {...} }
     // - 503/500: { success: false, message }
     if (res.statusCode >= 200 && res.statusCode < 300) {
       final success = jsonMap['success'] == true;
       if (!success) {
         throw TernakApiException(
-          message: jsonMap['message']?.toString() ?? 'Gagal mendapatkan rekomendasi',
+          message:
+              jsonMap['message']?.toString() ?? 'Gagal mendapatkan rekomendasi',
           statusCode: res.statusCode,
           body: res.body,
         );
       }
-      return TernakRecommendationResponse.fromJson(jsonMap['data'] as Map<String, dynamic>);
+      return TernakRecommendationResponse.fromJson(jsonMap);
     } else if (res.statusCode == 422) {
       throw TernakValidationException(
         message: jsonMap['message']?.toString() ?? 'Validasi gagal',
-        errors: (jsonMap['errors'] as Map<String, dynamic>?)?.map(
+        errors:
+            (jsonMap['errors'] as Map<String, dynamic>?)?.map(
               (k, v) => MapEntry(k, List<String>.from(v as List)),
             ) ??
             {},
       );
     } else {
       throw TernakApiException(
-        message: jsonMap['message']?.toString() ?? 'Terjadi kesalahan pada AI service',
+        message:
+            jsonMap['message']?.toString() ??
+            'Terjadi kesalahan pada AI service',
         statusCode: res.statusCode,
         body: res.body,
       );
@@ -111,7 +113,11 @@ class TernakApiException implements Exception {
   final String message;
   final int statusCode;
   final String body;
-  TernakApiException({required this.message, required this.statusCode, required this.body});
+  TernakApiException({
+    required this.message,
+    required this.statusCode,
+    required this.body,
+  });
   @override
   String toString() => 'TernakApiException($statusCode): $message\n$body';
 }

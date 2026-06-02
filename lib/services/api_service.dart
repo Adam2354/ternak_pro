@@ -20,10 +20,9 @@ import '../shared/theme.dart';
 
 class ApiService {
   // Base URL untuk API
-  static const String _baseUrl = 'http://10.0.2.2:8000/api/v1';
-  static const String _aiBaseUrl = kIsWeb
-      ? 'http://127.0.0.1:8001'
-      : 'http://10.0.2.2:8001';
+  static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
+  static const String _aiBaseUrl = 'https://ternakpro-ai.onrender.com';
+
   // static const String _baseUrl = 'https://aquamarine-ferret-962895.hostingersite.com/api/v1';
 
   // Fungsi untuk menyimpan token dan user_id ke SharedPreferences
@@ -327,6 +326,10 @@ class ApiService {
       print("Error during logout: $e");
     }
   }
+
+  //***************************************************AI Recommendation Endpoints*******************************************************
+  //***************************************************AI Recommendation Endpoints*******************************************************
+  //***************************************************AI Recommendation Endpoints*******************************************************
 
   //***************************************************Harga Pasar Endpoints*******************************************************
   //***************************************************Harga Pasar Endpoints*******************************************************
@@ -924,6 +927,34 @@ class ApiService {
     }
   }
 
+  // Fungsi untuk menghapus data ternak
+  Future<void> deleteTernak(String userId, int idTernak) async {
+    try {
+      final credentials = await loadCredentials();
+      final token = credentials['token'];
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/ternak/$userId/$idTernak'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return; // sukses
+      } else {
+        throw Exception(
+          'Gagal menghapus ternak: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Error menghapus data ternak: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getHewan() async {
     final response = await _makeRequest(method: 'GET', endpoint: '/hewan');
 
@@ -1438,18 +1469,67 @@ class ApiService {
     required String pengalaman,
   }) async {
     try {
-      final response = await _makeRequest(
-        method: 'POST',
-        endpoint: '/ai/rekomendasi-ternak',
-        body: {
-          'modal': modal,
-          'lahan': lahan,
-          'waktu': waktu,
-          'pengalaman': pengalaman,
-        },
-      ).timeout(const Duration(seconds: 30));
+      // Basic client-side validation to avoid sending invalid payloads
+      if (modal <= 0) {
+        throw Exception('Nilai `modal` harus lebih besar dari 0');
+      }
+      if (lahan <= 0) {
+        throw Exception('Nilai `lahan` harus lebih besar dari 0');
+      }
+      if (waktu <= 0) {
+        throw Exception('Nilai `waktu` harus lebih besar dari 0');
+      }
+      if (pengalaman.trim().isEmpty) {
+        throw Exception('Field `pengalaman` wajib diisi');
+      }
+      // Warn if pengalaman is not one of commonly expected values
+      final _acceptedPengalaman = {
+        'belum',
+        'kurang_1_tahun',
+        '1_3_tahun',
+        '3_5_tahun',
+        'lebih_5_tahun',
+      };
+      if (!_acceptedPengalaman.contains(pengalaman)) {
+        print(
+          'Warning: nilai `pengalaman` tidak umum: `$pengalaman`. Lanjutkan pengiriman.',
+        );
+      }
+      final uri = Uri.parse('$_aiBaseUrl/api/recommend-vikor');
+      final credentials = await loadCredentials();
+      final token = credentials['token'];
+      final headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final payload = {
+        'modal': modal,
+        'lahan': lahan,
+        'waktu': waktu,
+        'pengalaman': pengalaman,
+      };
+
+      // Debug logging: uri & payload
+      print('POST AI request -> $uri');
+      print('Payload: ${jsonEncode(payload)}');
+
+      http.Response response;
+      try {
+        response = await http
+            .post(uri, headers: headers, body: jsonEncode(payload))
+            .timeout(const Duration(seconds: 60));
+      } on Exception catch (e) {
+        if (e.toString().contains('TimeoutException')) {
+          throw Exception('Request ke AI timed out after 60 detik: $e');
+        }
+        rethrow;
+      }
 
       final responseBody = response.body.trim();
+      // Debug: log HTTP status and body for AI recommendation response
+      print('AI RESP status: ${response.statusCode}');
+      print('AI RESP body: $responseBody');
       final contentType = response.headers['content-type']?.toLowerCase() ?? '';
 
       if (responseBody.isEmpty) {
@@ -1467,7 +1547,7 @@ class ApiService {
             : responseBody;
         throw Exception(
           'Service rekomendasi mengembalikan HTML, bukan JSON. '
-          'Cek endpoint /ai/rekomendasi-ternak di backend. '
+          'Cek endpoint /api/recommend-vikor di backend. '
           'Status: ${response.statusCode}. Cuplikan: $snippet',
         );
       }
@@ -1543,7 +1623,48 @@ class ApiService {
             'biaya_total_per_ekor': map['biaya_total_per_ekor'] ?? modalMinimum,
             'estimasi_ekor': map['estimasi_ekor'] ?? 0,
             'sisa_modal': map['sisa_modal'] ?? 0,
-            'breakdown_biaya': map['breakdown_biaya'] ?? const {},
+            'breakdown_biaya': (() {
+              final raw = map['breakdown_biaya'] ?? map['breakdown'] ?? {};
+              if (raw is Map) return Map<String, dynamic>.from(raw);
+              if (raw is String) {
+                try {
+                  final decoded = jsonDecode(raw);
+                  if (decoded is Map) return Map<String, dynamic>.from(decoded);
+                  if (decoded is List) {
+                    final out = <String, dynamic>{};
+                    for (final e in decoded) {
+                      if (e is Map) {
+                        final key =
+                            (e['name'] ?? e['key'] ?? e['label'])?.toString() ??
+                            '';
+                        final value =
+                            e['value'] ?? e['amount'] ?? e['cost'] ?? 0;
+                        if (key.isNotEmpty) out[key] = value;
+                      }
+                    }
+                    return out;
+                  }
+                } catch (_) {}
+                return const {};
+              }
+              if (raw is List) {
+                final out = <String, dynamic>{};
+                for (final e in raw) {
+                  if (e is Map) {
+                    final key =
+                        (e['name'] ?? e['key'] ?? e['label'])?.toString() ?? '';
+                    final value = e['value'] ?? e['amount'] ?? e['cost'] ?? 0;
+                    if (key.isNotEmpty) out[key] = value;
+                  } else if (e is List && e.length >= 2) {
+                    final key = e[0].toString();
+                    final value = e[1];
+                    out[key] = value;
+                  }
+                }
+                return out;
+              }
+              return const {};
+            })(),
           };
         }).toList();
 

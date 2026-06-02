@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -234,14 +236,87 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
         : <String, dynamic>{};
 
     final biayaTotalPerEkor = _resolveValue(item, [
+      'biaya_per_ekor_estimasi',
+      'estimasi_biaya_per_ekor',
       'biaya_total_per_ekor',
       'modal_minimum',
       'biaya_awal',
       'modal_awal',
       'biaya',
     ]);
+
     final estimasiEkor = item['estimasi_ekor'] ?? 0;
-    final sisaModal = item['sisa_modal'];
+    final dynamic sisaModalRaw = item['sisa_modal'];
+
+    double? sisaModal;
+    if (sisaModalRaw != null) {
+      sisaModal = (sisaModalRaw is num)
+          ? sisaModalRaw.toDouble()
+          : double.tryParse(sisaModalRaw.toString());
+    }
+
+    // If API didn't provide sisa_modal or it's zero, compute a fallback
+    // using user provided modal minus estimated total cost.
+    // Prefer sum(breakdown_biaya) as biaya per ekor when available.
+    double biayaPerEkor = 0.0;
+    if (breakdownMap.isNotEmpty) {
+      double sum = 0.0;
+      breakdownMap.forEach((_, v) {
+        if (v is num) {
+          sum += v.toDouble();
+        } else {
+          sum += double.tryParse(v.toString()) ?? 0.0;
+        }
+      });
+
+      final estEkor = int.tryParse(estimasiEkor.toString()) ?? 0;
+      // Two interpretations:
+      // A) breakdown values already per-ekor -> candidateA = sum
+      // B) breakdown values are totals for all ekor -> candidateB = sum / estEkor
+      final candidateA = sum;
+      final candidateB = (estEkor > 0) ? (sum / estEkor) : candidateA;
+
+      // Choose candidate that yields a sensible sisa_modal (prefer non-negative)
+      double chooseCandidate() {
+        final user = userModal;
+        if (user <= 0) return candidateB > 0 ? candidateB : candidateA;
+
+        final totalA = candidateA * estEkor;
+        final totalB = candidateB * estEkor;
+        final sisaA = user - totalA;
+        final sisaB = user - totalB;
+
+        // Prefer the candidate that gives non-negative sisa if possible
+        if (sisaB >= 0 && sisaA < 0) return candidateB;
+        if (sisaA >= 0 && sisaB < 0) return candidateA;
+
+        // Otherwise choose the one with larger remaining budget (less negative)
+        if (sisaB > sisaA) return candidateB;
+        return candidateA;
+      }
+
+      biayaPerEkor = chooseCandidate();
+    }
+
+    if (biayaPerEkor == 0.0) {
+      biayaPerEkor = (biayaTotalPerEkor is num)
+          ? (biayaTotalPerEkor as num).toDouble()
+          : double.tryParse(biayaTotalPerEkor.toString()) ?? 0.0;
+    }
+
+    // Debug prints to help tune heuristics
+    try {
+      print(
+        'DEBUG biaya_per_ekor: $biayaPerEkor, biayaTotalPerEkor: $biayaTotalPerEkor, estimasiEkor: $estimasiEkor, userModal: $userModal',
+      );
+    } catch (_) {}
+
+    if ((sisaModal == null || sisaModal == 0) && userModal > 0) {
+      final estEkor = int.tryParse(estimasiEkor.toString()) ?? 0;
+      final estimatedTotalCost = biayaPerEkor * estEkor;
+      final computed = userModal - estimatedTotalCost;
+      sisaModal = computed.isFinite ? computed : 0.0;
+    }
 
     // Jika estimasi 0 -> tampilkan pesan ringkas dan jangan tampilkan sisa/modal/breakdown
     if (estimasiEkor == 0) {
@@ -405,18 +480,41 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
 
       appBar: AppBar(
         title: Text('Hasil Rekomendasi Ternak', style: AppTextStyle.semiBold),
-
         backgroundColor: const Color(0xFFF5FAFB),
-
         elevation: 0,
-
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppColors.blackText),
-
           onPressed: () {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Tampilkan JSON mentah',
+            icon: Icon(Icons.bug_report_outlined, color: AppColors.blackText),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Raw recommendation data'),
+                  content: SingleChildScrollView(
+                    child: SelectableText(
+                      const JsonEncoder.withIndent(
+                        '  ',
+                      ).convert(recommendationData),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Tutup'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
 
       body: recommendations.isEmpty
