@@ -43,6 +43,7 @@ class _DataTernakListState extends State<DataTernakList> {
       itemCount: _ternakList.length,
       itemBuilder: (context, index) {
         final item = _ternakList[index];
+        print('DATA TERNAK = $item');
         final idTernak = item['id_ternak'] as int;
         final tagId = item['tag_id'] as String;
 
@@ -109,6 +110,7 @@ class _DataTernakListState extends State<DataTernakList> {
             jenis: item['jenis_kelamin'],
             berat: item['berat']!.toString(),
             status: item['kondisi_ternak'],
+            iconPath: item['icon_path'],
             onUpdate: (updatedData) => _updateTernakItem(index, updatedData),
           ),
         );
@@ -123,6 +125,7 @@ class CustomTernakItem extends StatelessWidget {
   final String jenis;
   final String berat;
   final String status;
+  final String iconPath;
   final Function(Map<String, dynamic>) onUpdate;
 
   const CustomTernakItem({
@@ -131,6 +134,7 @@ class CustomTernakItem extends StatelessWidget {
     required this.idTernak,
     required this.jenis,
     required this.berat,
+    required this.iconPath,
     required this.status,
     required this.onUpdate,
   });
@@ -146,6 +150,7 @@ class CustomTernakItem extends StatelessWidget {
           jenis,
           berat,
           status,
+          iconPath,
         );
         if (updatedData != null) {
           onUpdate(updatedData);
@@ -164,7 +169,7 @@ class CustomTernakItem extends StatelessWidget {
           children: [
             // Ikon sapi (fixed width)
             Image.asset(
-              'assets/data_ternak_assets/icons/ic_cow_hd.png',
+              iconPath,
               width: 50,
               height: 50,
             ),
@@ -302,6 +307,7 @@ Future<Map<String, dynamic>?> showDataTernakDialog(
   String jenis,
   String berat,
   String status,
+  String iconPath,
 ) async {
   TextEditingController noteController = TextEditingController();
   ValueNotifier<String> jenisKelaminNotifier = ValueNotifier(jenis);
@@ -361,7 +367,7 @@ Future<Map<String, dynamic>?> showDataTernakDialog(
                 // Cow image section
                 Center(
                   child: Image.asset(
-                    'assets/data_ternak_assets/icons/ic_cow_hd.png',
+                    iconPath,
                     height: 100,
                   ),
                 ),

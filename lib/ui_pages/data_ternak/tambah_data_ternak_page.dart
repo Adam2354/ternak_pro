@@ -13,11 +13,13 @@ class CustomInputTernakField extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
   final int maxLines;
-  final bool isCalendar; // Flag untuk menentukan apakah akan menampilkan DatePicker
+  final bool
+  isCalendar; // Flag untuk menentukan apakah akan menampilkan DatePicker
   final TextInputType? keyboardType;
   final bool readOnly;
 
-  const CustomInputTernakField({super.key, 
+  const CustomInputTernakField({
+    super.key,
     required this.label,
     required this.hintText,
     required this.controller,
@@ -45,7 +47,9 @@ class CustomInputTernakField extends StatelessWidget {
           keyboardType: keyboardType,
           maxLines: maxLines,
           controller: controller,
-          readOnly: isCalendar == true ? isCalendar : readOnly, // Make it read-only if it's a DatePicker
+          readOnly: isCalendar == true
+              ? isCalendar
+              : readOnly, // Make it read-only if it's a DatePicker
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(fontSize: 14, color: Colors.black54),
@@ -66,7 +70,9 @@ class CustomInputTernakField extends StatelessWidget {
                     },
                   )
                 : null, // No icon if it's not a calendar
-            fillColor: readOnly ? AppColors.grey20 : Colors.white, // Add background color when read-only
+            fillColor: readOnly
+                ? AppColors.grey20
+                : Colors.white, // Add background color when read-only
             filled: readOnly, // Fill only if it's read-only
           ),
           onTap: isCalendar
@@ -79,6 +85,7 @@ class CustomInputTernakField extends StatelessWidget {
       ],
     );
   }
+
   // Function to show DatePicker dialog
   void _showDatePicker(BuildContext context) async {
     DateTime? selectedDate = await showDatePicker(
@@ -91,10 +98,10 @@ class CustomInputTernakField extends StatelessWidget {
     if (selectedDate != null) {
       // Format the selected date and set it in the controller
       String formattedDate = DateFormat('dd/MM/yyyy').format(selectedDate);
-      controller.text = formattedDate; // Update the text field with the selected date
+      controller.text =
+          formattedDate; // Update the text field with the selected date
     }
   }
-
 }
 
 class CustomDropdownInputTernak extends StatefulWidget {
@@ -114,7 +121,8 @@ class CustomDropdownInputTernak extends StatefulWidget {
   });
 
   @override
-  State<CustomDropdownInputTernak> createState() => _CustomDropdownInputTernakState();
+  State<CustomDropdownInputTernak> createState() =>
+      _CustomDropdownInputTernakState();
 }
 
 class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
@@ -128,7 +136,10 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
           message: widget.label,
           child: Text(
             widget.label,
-            style: AppTextStyle.semiBold.copyWith(fontSize: 14, color: AppColors.black100),
+            style: AppTextStyle.semiBold.copyWith(
+              fontSize: 14,
+              color: AppColors.black100,
+            ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -151,19 +162,24 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
                     message: widget.selectedValue.isEmpty
                         ? widget.hintText
                         : widget.options.firstWhere(
-                            (option) => option['id'].toString() == widget.selectedValue,
+                            (option) =>
+                                option['id'].toString() == widget.selectedValue,
                             orElse: () => {'nama': widget.hintText},
                           )['nama'],
                     child: Text(
                       widget.selectedValue.isEmpty
                           ? widget.hintText
                           : widget.options.firstWhere(
-                              (option) => option['id'].toString() == widget.selectedValue,
+                              (option) =>
+                                  option['id'].toString() ==
+                                  widget.selectedValue,
                               orElse: () => {'nama': widget.hintText},
                             )['nama'],
                       style: AppTextStyle.medium.copyWith(
                         fontSize: 14,
-                        color: widget.selectedValue.isEmpty ? AppColors.black01 : AppColors.black100,
+                        color: widget.selectedValue.isEmpty
+                            ? AppColors.black01
+                            : AppColors.black100,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -194,18 +210,24 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 10,
+          ),
           content: SingleChildScrollView(
             child: ListBody(
               children: widget.options.map((option) {
                 return RadioListTile<String>(
                   title: Text(
                     option['nama'],
-                    style: AppTextStyle.medium.copyWith(fontSize: 16, color: AppColors.black100),
+                    style: AppTextStyle.medium.copyWith(
+                      fontSize: 16,
+                      color: AppColors.black100,
+                    ),
                   ),
                   value: option['id'].toString(),
                   groupValue: widget.selectedValue,
-                   onChanged: (String? value) {
+                  onChanged: (String? value) {
                     if (value == '0') {
                       // Jika memilih id = 0, buka custom modal
                       _showCustomModal(context);
@@ -243,7 +265,10 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
           ),
           title: Text(
             'Tambah Tujuan Ternak',
-            style: AppTextStyle.semiBold.copyWith(fontSize: 18, color: AppColors.black100),
+            style: AppTextStyle.semiBold.copyWith(
+              fontSize: 18,
+              color: AppColors.black100,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -281,7 +306,10 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
                     // Panggil API Service untuk menyimpan tujuan ternak
                     final credentials = await ApiService().loadCredentials();
                     final userId = credentials['user_id'];
-                    final newTujuanId = await ApiService.storeTujuanTernak(userId, nama);
+                    final newTujuanId = await ApiService.storeTujuanTernak(
+                      userId,
+                      nama,
+                    );
 
                     // Perbarui selectedValue dengan ID baru
                     setState(() {
@@ -292,7 +320,10 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
                     Navigator.of(context).pop();
 
                     // Tutup dialog opsi
-                    Navigator.pushReplacementNamed(context, '/tambah-data-ternak');
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/tambah-data-ternak',
+                    );
                   } catch (e) {
                     // Tampilkan pesan error jika gagal
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -319,7 +350,9 @@ class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
               ),
               child: Text(
                 'Simpan',
-                style: AppTextStyle.medium.copyWith(color: AppColors.primaryWhite),
+                style: AppTextStyle.medium.copyWith(
+                  color: AppColors.primaryWhite,
+                ),
               ),
             ),
           ],
@@ -334,9 +367,7 @@ Widget _buildHeaderSection(BuildContext context) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.12,
     width: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppColors.gradasi01,
-    ),
+    decoration: BoxDecoration(gradient: AppColors.gradasi01),
     child: Stack(
       children: [
         CustomImageView(
@@ -370,7 +401,10 @@ Widget _buildHeaderSection(BuildContext context) {
                 children: [
                   Text(
                     'Tambah Data Ternak',
-                    style: AppTextStyle.medium.copyWith(fontSize: 20, color: AppColors.white100),
+                    style: AppTextStyle.medium.copyWith(
+                      fontSize: 20,
+                      color: AppColors.white100,
+                    ),
                   ),
                 ],
               ),
@@ -391,7 +425,8 @@ class TambahDataTernakPage extends StatefulWidget {
 }
 
 class TambahDataTernakPageState extends State<TambahDataTernakPage> {
-  final TextEditingController _namaPeternakanController = TextEditingController();
+  final TextEditingController _namaPeternakanController =
+      TextEditingController();
   final TextEditingController _tanggalMulaiController = TextEditingController();
   final TextEditingController _jumlahHewanController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
@@ -406,7 +441,6 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
   String _selectedKondisi = '';
   String _selectedJenisKelamin = '';
 
- 
   List<Map<String, dynamic>> _optionsHewan = [];
   List<Map<String, dynamic>> _optionsRas = [];
   List<Map<String, dynamic>> _optionsTujuanTernak = [];
@@ -431,17 +465,22 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
       return input; // fallback kalau user mengetik manual
     }
   }
-  
+
   // Fungsi untuk mengambil nama dari SharedPreferences
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
-    String? userName = prefs.getString('name');  // Ambil 'name' dari SharedPreferences
+    String? userName = prefs.getString(
+      'name',
+    ); // Ambil 'name' dari SharedPreferences
 
     // Jika 'name' tidak ditemukan, gunakan string default
-    String defaultName = userName != null ? 'Peternakan $userName' : 'Peternakan';
+    String defaultName = userName != null
+        ? 'Peternakan $userName'
+        : 'Peternakan';
 
     setState(() {
-      _namaPeternakanController.text = defaultName;  // Set nilai pada _namaPeternakanController
+      _namaPeternakanController.text =
+          defaultName; // Set nilai pada _namaPeternakanController
     });
   }
 
@@ -450,7 +489,9 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
       await loadUserId();
       final hewan = await _apiService.getHewan();
       final ras = await _apiService.getRas();
-      final tujuanTernak = await _apiService.getTujuanTernakListByUserId(userId);
+      final tujuanTernak = await _apiService.getTujuanTernakListByUserId(
+        userId,
+      );
       setState(() {
         _optionsHewan = hewan;
         _optionsRas = ras;
@@ -474,9 +515,13 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
 
   Future<void> _saveData() async {
     // Validasi minimal sebelum kirim
-    if (_selectedHewan.isEmpty || _selectedRas.isEmpty || _selectedTujuanTernak.isEmpty) {
+    if (_selectedHewan.isEmpty ||
+        _selectedRas.isEmpty ||
+        _selectedTujuanTernak.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih hewan, ras, dan tujuan ternak terlebih dahulu')),
+        const SnackBar(
+          content: Text('Pilih hewan, ras, dan tujuan ternak terlebih dahulu'),
+        ),
       );
       return;
     }
@@ -493,25 +538,44 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
     final int tujuanTernakId = int.tryParse(_selectedTujuanTernak) ?? 0;
 
     final String tglMulaiYmd = _formatToYmd(_tanggalMulaiController.text);
-    final int? usia = _usiaController.text.trim().isEmpty ? null : int.tryParse(_usiaController.text.trim());
-    final double? berat = _beratController.text.trim().isEmpty ? null : double.tryParse(_beratController.text.trim());
+    final int? usia = _usiaController.text.trim().isEmpty
+        ? null
+        : int.tryParse(_usiaController.text.trim());
+    final double? berat = _beratController.text.trim().isEmpty
+        ? null
+        : double.tryParse(_beratController.text.trim());
     final int? jumlahHewan = _isChecked
         ? null
-        : (_jumlahController.text.trim().isEmpty ? null : int.tryParse(_jumlahController.text.trim()));
+        : (_jumlahController.text.trim().isEmpty
+              ? null
+              : int.tryParse(_jumlahController.text.trim()));
 
     // Field individual
     final String? tagId = _isChecked
-        ? (_jumlahHewanController.text.trim().isEmpty ? null : _jumlahHewanController.text.trim())
+        ? (_jumlahHewanController.text.trim().isEmpty
+              ? null
+              : _jumlahHewanController.text.trim())
         : null;
-    final String? kondisiTernak = _isChecked && _selectedKondisi.isNotEmpty ? _selectedKondisi : null;
-    final String? jenisKelamin = _isChecked && _selectedJenisKelamin.isNotEmpty ? _selectedJenisKelamin : null;
+    final String? kondisiTernak = _isChecked && _selectedKondisi.isNotEmpty
+        ? _selectedKondisi
+        : null;
+    final String? jenisKelamin = _isChecked && _selectedJenisKelamin.isNotEmpty
+        ? _selectedJenisKelamin
+        : null;
 
     // Validasi cabang sederhana
     if (_isChecked) {
       // Individual
-      if (tagId == null || kondisiTernak == null || jenisKelamin == null || berat == null) {
+      if (tagId == null ||
+          kondisiTernak == null ||
+          jenisKelamin == null ||
+          berat == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lengkapi Tag, Kondisi, Jenis Kelamin, dan Berat untuk mode individu')),
+          const SnackBar(
+            content: Text(
+              'Lengkapi Tag, Kondisi, Jenis Kelamin, dan Berat untuk mode individu',
+            ),
+          ),
         );
         return;
       }
@@ -519,7 +583,9 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
       // Batch
       if (jumlahHewan == null || jumlahHewan < 1) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Jumlah hewan minimal 1 untuk mode kelompok')),
+          const SnackBar(
+            content: Text('Jumlah hewan minimal 1 untuk mode kelompok'),
+          ),
         );
         return;
       }
@@ -530,19 +596,22 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
       final ok = await _apiService.storeTernak(
         context: context,
         userId: userId,
-        namaTernak: _namaPeternakanController.text.trim(), // dipakai sebagai nama_ternak
+        namaTernak: _namaPeternakanController.text
+            .trim(), // dipakai sebagai nama_ternak
         tglMulai: tglMulaiYmd,
         hewanId: hewanId,
         rasId: rasId,
         tujuanTernakId: tujuanTernakId,
         isIndividual: _isChecked,
-        usia: usia,                      // null → default 0 di backend atau di service
-        tagId: tagId,                    // wajib saat individual
-        kondisiTernak: kondisiTernak,    // wajib saat individual
-        jenisKelamin: jenisKelamin,      // wajib saat individual
-        berat: berat ?? 0,                    // wajib saat individual
-        jumlahHewan: jumlahHewan,        // wajib saat batch
-        catatan: _catatanController.text.trim().isEmpty ? null : _catatanController.text.trim(),
+        usia: usia, // null → default 0 di backend atau di service
+        tagId: tagId, // wajib saat individual
+        kondisiTernak: kondisiTernak, // wajib saat individual
+        jenisKelamin: jenisKelamin, // wajib saat individual
+        berat: berat ?? 0, // wajib saat individual
+        jumlahHewan: jumlahHewan, // wajib saat batch
+        catatan: _catatanController.text.trim().isEmpty
+            ? null
+            : _catatanController.text.trim(),
       );
 
       setState(() => _isLoading = false);
@@ -561,12 +630,11 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan data: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -601,7 +669,9 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.12),
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.12,
+        ),
         child: _buildHeaderSection(context),
       ),
       body: SingleChildScrollView(
@@ -630,9 +700,18 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
                   child: CustomDropdownInputTernak(
                     label: 'Pilih Hewan',
                     hintText: 'Pilih salah satu',
-                    options: _optionsHewan,
+                    options: _optionsHewan.isNotEmpty
+                        ? _optionsHewan
+                        : const [
+                            {'id': '1', 'nama': 'Sapi'},
+                            {'id': '2', 'nama': 'Kambing'},
+                            {'id': '3', 'nama': 'Domba'},
+                            {'id': '4', 'nama': 'Ayam'},
+                            {'id': '5', 'nama': 'Bebek'},
+                          ],
                     selectedValue: _selectedHewan,
-                    onChanged: (value) => setState(() => _selectedHewan = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedHewan = value),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -656,17 +735,18 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
                     hintText: 'Pilih salah satu',
                     options: _optionsTujuanTernak,
                     selectedValue: _selectedTujuanTernak,
-                    onChanged: (value) => setState(() => _selectedTujuanTernak = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedTujuanTernak = value),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child:  CustomInputTernakField(
-                  label: 'Usia',
-                  hintText: 'Masukkan usia',
-                  controller: _usiaController,
-                  keyboardType: TextInputType.number,
-                ),
+                  child: CustomInputTernakField(
+                    label: 'Usia (Bulan)',
+                    hintText: 'Masukkan usia (bulan)',
+                    controller: _usiaController,
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
               ],
             ),
@@ -712,7 +792,8 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
                         {'id': 'Betina', 'nama': 'Betina'},
                       ],
                       selectedValue: _selectedJenisKelamin,
-                      onChanged: (value) => setState(() => _selectedJenisKelamin = value),
+                      onChanged: (value) =>
+                          setState(() => _selectedJenisKelamin = value),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -741,12 +822,24 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
               controller: _catatanController,
               maxLines: 4,
             ),
-            // Simpan Button
+            // Simpan Button (disabled kalau daftar hewan kosong)
             OnboardingButton(
               previous: false,
-              text: "➞ Simpan", // Menggunakan emoji panah tebal dari respons sebelumnya
+              text:
+                  "➞ Simpan", // Menggunakan emoji panah tebal dari respons sebelumnya
               width: double.infinity,
-              onClick: _saveData,
+              isActive: _optionsHewan.isNotEmpty,
+              onClick: _optionsHewan.isNotEmpty
+                  ? _saveData
+                  : () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Daftar hewan belum tersedia. Silakan coba lagi.',
+                          ),
+                        ),
+                      );
+                    },
             ),
           ],
         ),

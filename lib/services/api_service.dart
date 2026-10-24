@@ -20,7 +20,9 @@ import '../shared/theme.dart';
 
 class ApiService {
   // Base URL untuk API
-  static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
+  static const String _baseUrl = 'http://127.0.0.1:8000/api/v1';
+  // static const String _baseUrl = 'https://ternakpro-id.stackstaging.com/backend/api/v1';
+  // static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
   static const String _aiBaseUrl = 'https://ternakpro-ai.onrender.com';
 
   // static const String _baseUrl = 'https://aquamarine-ferret-962895.hostingersite.com/api/v1';

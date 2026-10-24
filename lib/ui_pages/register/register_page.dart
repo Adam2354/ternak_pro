@@ -11,7 +11,8 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderStateMixin {
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
   bool rememberMe = false;
   bool showPassword = false;
   bool showPasswordConfirmation = false;
@@ -19,7 +20,8 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
   final TextEditingController emailController = TextEditingController();
   final TextEditingController noTeleponController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController passwordConfirmationController = TextEditingController();
+  final TextEditingController passwordConfirmationController =
+      TextEditingController();
   final TextEditingController nameController = TextEditingController();
 
   bool emailError = false;
@@ -168,7 +170,9 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
         password: passwordController.text,
         passwordConfirmation: passwordConfirmationController.text,
         roleId: selectedRoleId,
-        noTelepon: noTeleponController.text.trim().isEmpty ? null : noTeleponController.text.trim(),
+        noTelepon: noTeleponController.text.trim().isEmpty
+            ? null
+            : noTeleponController.text.trim(),
       );
       // Tampilkan pesan selamat datang
       if (mounted) {
@@ -200,9 +204,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
           // Background gradient
           Container(
             height: width * 1.1,
-            decoration: const BoxDecoration(
-              gradient: AppColors.gradasi02,
-            ),
+            decoration: const BoxDecoration(gradient: AppColors.gradasi02),
           ),
 
           Positioned(
@@ -225,11 +227,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
               children: [
                 const SizedBox(height: 56),
                 // Logo
-                Image.asset(
-                  "assets/ic_launcher.png",
-                  width: 56,
-                  height: 56,
-                ),
+                Image.asset("assets/ic_launcher.png", width: 56, height: 56),
                 const SizedBox(height: 16),
                 // Title
                 Text(
@@ -254,7 +252,10 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                 // Card
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 24,
+                    horizontal: 20,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
@@ -383,8 +384,8 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                               showPassword
                                   ? AppColors.primaryBlue
                                   : (passwordFocused && !passwordError
-                                      ? AppColors.black100
-                                      : Colors.grey),
+                                        ? AppColors.black100
+                                        : Colors.grey),
                               BlendMode.srcIn,
                             ),
                             child: Image.asset(
@@ -419,7 +420,8 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                           padding: const EdgeInsets.all(12.0),
                           child: ColorFiltered(
                             colorFilter: ColorFilter.mode(
-                              passwordConfirmationFocused && !passwordConfirmationError
+                              passwordConfirmationFocused &&
+                                      !passwordConfirmationError
                                   ? AppColors.black100
                                   : Colors.grey,
                               BlendMode.srcIn,
@@ -436,9 +438,10 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                             colorFilter: ColorFilter.mode(
                               showPasswordConfirmation
                                   ? AppColors.primaryBlue
-                                  : (passwordConfirmationFocused && !passwordConfirmationError
-                                      ? AppColors.black100
-                                      : Colors.grey),
+                                  : (passwordConfirmationFocused &&
+                                            !passwordConfirmationError
+                                        ? AppColors.black100
+                                        : Colors.grey),
                               BlendMode.srcIn,
                             ),
                             child: Image.asset(
@@ -451,7 +454,8 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                           ),
                           onPressed: () {
                             setState(() {
-                              showPasswordConfirmation = !showPasswordConfirmation;
+                              showPasswordConfirmation =
+                                  !showPasswordConfirmation;
                             });
                           },
                         ),
@@ -461,7 +465,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                           });
                         },
                       ),
-                      
+
                       const SizedBox(height: 35),
 
                       // Register Button
@@ -492,7 +496,10 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                       Row(
                         children: [
                           const Expanded(
-                            child: Divider(thickness: 1, color: AppColors.black50),
+                            child: Divider(
+                              thickness: 1,
+                              color: AppColors.black50,
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -505,7 +512,10 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                             ),
                           ),
                           const Expanded(
-                            child: Divider(thickness: 1, color: AppColors.black50),
+                            child: Divider(
+                              thickness: 1,
+                              color: AppColors.black50,
+                            ),
                           ),
                         ],
                       ),
@@ -604,7 +614,10 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                     elevation: 20,
                     child: Container(
                       color: AppColors.primaryRed,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -638,12 +651,15 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                     elevation: 20,
                     child: Container(
                       color: AppColors.green01,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              errorMessage!,
+                              successMessage!,
                               style: AppTextStyle.semiBold.copyWith(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -658,15 +674,13 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
               ),
             ),
 
-            if (isLoading)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.white60, // Latar belakang semi-transparan
-                    child: const Center(
-                      child: TernakProBoxLoading(),
-                    ),
-                  ),
-                ),
+          if (isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.white60, // Latar belakang semi-transparan
+                child: const Center(child: TernakProBoxLoading()),
+              ),
+            ),
         ],
       ),
     );
@@ -683,16 +697,11 @@ void _showFeatureUserNotAvailableDialog(BuildContext context) {
         ),
         title: const Text(
           'Informasi',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         content: const Text(
           'Mohon maaf saat ini Registrasi dengan Google belum dapat digunakan, silakan google dengan email dan password.',
-          style: TextStyle(
-            fontSize: 16,
-          ),
+          style: TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
