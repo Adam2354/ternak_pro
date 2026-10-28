@@ -37,40 +37,50 @@ import 'ui_pages/harga_pasar/harga_pasar_page.dart';
 import 'ui_pages/konsultasi_pakar/konsultasi_pakar_page.dart';
 import 'ui_pages/main/main_page_mobile.dart';
 import 'ui_pages/main/notifikasi_page.dart';
-import 'ui_pages/rekomendasi_ternak/hasil_rekomendasi_ternak_page.dart';
+// import 'ui_pages/rekomendasi_ternak/hasil_rekomendasi_ternak_page.dart';
 import 'ui_pages/supplier_pakan/supplier_limbah_pakan_page.dart';
 import 'ui_pages/tips_harian/tips_harian_detail_page.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO: HANYA UNTUK BUILD WEB
-  // Periksa localStorage terlebih dahulu
-  // checkLoginStatus();
+  // Inisialisasi Firebase untuk Android dan Web
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  // Init data locale untuk intl (wajib biar DateFormat 'id_ID' ga error)
+  // Inisialisasi format tanggal Indonesia
   await initializeDateFormatting('id_ID', null);
-  Intl.defaultLocale = 'id_ID'; // opsional
+  Intl.defaultLocale = 'id_ID';
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
+  // Pengaturan status bar
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+  );
 
+  // Menjalankan aplikasi TernakPro
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
   );
 }
+
 
 
 // TODO: HANYA UNTUK BUILD WEB

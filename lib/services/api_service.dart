@@ -303,6 +303,58 @@ class ApiService {
     }
   }
 
+  // **Google Login Endpoint**
+  Future<User> loginWithGoogle({required String idToken}) async {
+    final response = await _makeRequest(
+      method: 'POST',
+      endpoint: '/google-login',
+      body: {'id_token': idToken},
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+
+      final payload = result is Map && result.containsKey('data')
+          ? result['data']
+          : result;
+
+      if (payload is! Map) {
+        throw Exception(
+          'Login Google gagal: Data pengguna atau token tidak ditemukan di response.',
+        );
+      }
+
+      final user = payload['user'] is Map ? payload['user'] as Map : payload;
+      final token = payload['token'] ?? result['token'];
+
+      if (token == null || token.toString().isEmpty) {
+        throw Exception(
+          'Login Google gagal: Token tidak ditemukan di response.',
+        );
+      }
+
+      final uid = (user['uid'] ?? user['id'] ?? '').toString();
+      final userEmail = (user['email'] ?? '').toString();
+      final noTelepon = (user['no_telepon'] ?? '').toString();
+      final name = (user['name'] ?? '').toString();
+      final roleId = int.tryParse('${user['role_id'] ?? 3}') ?? 3;
+
+      await _saveCredentials(token, uid, userEmail, noTelepon, name, roleId);
+
+      return User.fromJson({
+        'uid': uid,
+        'email': userEmail,
+        'no_telepon': noTelepon,
+        'name': name,
+        'role_id': roleId,
+      });
+    }
+
+    final responseData = jsonDecode(response.body);
+    final message = responseData['message'] ?? 'Login Google gagal';
+    throw Exception(message);
+  }
+
   // **Logout**
   static Future<void> logout(BuildContext context) async {
     try {
