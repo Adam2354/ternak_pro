@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ternak_pro/services/api_service.dart';
 import '../../theme.dart';
+import '../custom_image_view.dart';
 import 'harga_filter.dart';
 
 class CustomHargaPasarItem extends StatelessWidget {
@@ -75,15 +76,12 @@ class CustomHargaPasarItem extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    imageUrl.startsWith('http')
-                        ? Image.network(
-                            imageUrl,
-                            width: cardWidth * 0.5,
-                          )
-                        : Image.asset(
-                            imageUrl,
-                            width: cardWidth * 0.5,
-                          ),
+                    CustomImageView(
+                      imagePath: imageUrl,
+                      width: cardWidth * 0.62,
+                      height: cardWidth * 0.48,
+                      fit: BoxFit.contain,
+                    ),
                   ],
                 ),
               ),
@@ -91,7 +89,10 @@ class CustomHargaPasarItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
                     child: Text(
                       name,
                       style: AppTextStyle.regular,
@@ -120,17 +121,7 @@ class CustomHargaPasarItem extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    statusIcon.startsWith('http')
-                        ? Image.network(
-                            statusIcon,
-                            width: 12.0,
-                            height: 12.0,
-                          )
-                        : Image.asset(
-                            statusIcon,
-                            width: 12.0,
-                            height: 12.0,
-                          ),
+                    Image.asset(statusIcon, width: 12.0, height: 12.0),
                     SizedBox(width: 4.0),
                     Text(
                       'Harga $kondisi',
@@ -163,7 +154,7 @@ class HargaPasarList extends StatefulWidget {
 
 class _HargaPasarListState extends State<HargaPasarList> {
   late Future<List<Map<String, dynamic>>> hargaPasarFuture;
-  List<Map<String, dynamic>> items = [];  // Declare items here
+  List<Map<String, dynamic>> items = []; // Declare items here
 
   @override
   void initState() {
@@ -173,19 +164,24 @@ class _HargaPasarListState extends State<HargaPasarList> {
 
   // Fetch data from the API
   Future<List<Map<String, dynamic>>> _fetchHargaPasarData() async {
-    List<Map<String, dynamic>> fetchedItems = await ApiService().getAllHargaPasar();
+    List<Map<String, dynamic>> fetchedItems = await ApiService()
+        .getAllHargaPasar();
     setState(() {
-      items = fetchedItems;  // Update items list with the fetched data
+      items = fetchedItems; // Update items list with the fetched data
     });
     return fetchedItems;
   }
 
   bool _matchFilter(String kondisi) {
     switch (widget.filter) {
-      case HargaFilter.semua:  return true;
-      case HargaFilter.naik:   return kondisi.toLowerCase() == 'naik';
-      case HargaFilter.turun:  return kondisi.toLowerCase() == 'turun';
-      case HargaFilter.stabil: return kondisi.toLowerCase() == 'stabil';
+      case HargaFilter.semua:
+        return true;
+      case HargaFilter.naik:
+        return kondisi.toLowerCase() == 'naik';
+      case HargaFilter.turun:
+        return kondisi.toLowerCase() == 'turun';
+      case HargaFilter.stabil:
+        return kondisi.toLowerCase() == 'stabil';
     }
   }
 
@@ -202,10 +198,12 @@ class _HargaPasarListState extends State<HargaPasarList> {
     }).toList();
 
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: hargaPasarFuture,  // Use the future for fetching data
+      future: hargaPasarFuture, // Use the future for fetching data
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());  // Show loading spinner
+          return Center(
+            child: CircularProgressIndicator(),
+          ); // Show loading spinner
         }
 
         if (snapshot.hasError) {

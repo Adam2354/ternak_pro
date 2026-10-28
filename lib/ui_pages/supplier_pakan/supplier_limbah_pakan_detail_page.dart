@@ -32,9 +32,8 @@ class SupplierLimbahPakanDetailPage extends StatefulWidget {
     required this.khasiat,
     required this.harga,
     required this.alamatOverview,
-    required this.alamatLengkap, 
+    required this.alamatLengkap,
   });
-
 
   /// Factory agar tinggal kirim Map `item` dari list
   factory SupplierLimbahPakanDetailPage.fromMap(Map<String, dynamic> item) {
@@ -47,7 +46,9 @@ class SupplierLimbahPakanDetailPage extends StatefulWidget {
       judul: item['judul']?.toString() ?? '',
       detail: item['detail']?.toString() ?? '',
       khasiat: item['khasiat']?.toString() ?? '',
-      harga: (item['harga'] is int) ? item['harga'] as int : int.tryParse(item['harga'].toString()) ?? 0,
+      harga: (item['harga'] is int)
+          ? item['harga'] as int
+          : int.tryParse(item['harga'].toString()) ?? 0,
       alamatOverview: item['alamat_overview']?.toString() ?? '',
       alamatLengkap: item['alamat']?.toString() ?? '',
     );
@@ -63,10 +64,12 @@ class _SupplierLimbahPakanDetailPageState
   int _currentImage = 0;
   final PageController _pageController = PageController();
 
-  List<String> get _imageList =>
-      (widget.imageUrlJoined).split(';').where((e) => e.trim().isNotEmpty).toList();
+  List<String> get _imageList => (widget.imageUrlJoined)
+      .split(';')
+      .where((e) => e.trim().isNotEmpty)
+      .map((e) => e.trim())
+      .toList();
 
-    
   String formatRupiah(int value) {
     final formatter = NumberFormat('#,###', 'id_ID');
     return formatter.format(value).replaceAll(',', '.');
@@ -107,8 +110,9 @@ class _SupplierLimbahPakanDetailPageState
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.12),
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.12,
+        ),
         child: _buildHeaderSection(context),
       ),
       body: SingleChildScrollView(
@@ -166,25 +170,28 @@ class _SupplierLimbahPakanDetailPageState
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-                                  widget.isNego == true ? 
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: AppColors.gradasi01,
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: Text(
-                                      'Nego',
-                                      style: AppTextStyle.medium.copyWith(
-                                        color: AppColors.white100,
-                                        fontSize: chipFont,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ): SizedBox()
+                                  widget.isNego == true
+                                      ? Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: AppColors.gradasi01,
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Nego',
+                                            style: AppTextStyle.medium.copyWith(
+                                              color: AppColors.white100,
+                                              fontSize: chipFont,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        )
+                                      : SizedBox(),
                                 ],
                               ),
                             ),
@@ -239,9 +246,11 @@ class _SupplierLimbahPakanDetailPageState
                       ),
                       const SizedBox(width: 10),
                       Text(
-                         'No. Telp: ${formatNomor(widget.phoneNumber ?? '08')}',
+                        'No. Telp: ${formatNomor(widget.phoneNumber ?? '08')}',
                         style: AppTextStyle.semiBold.copyWith(
-                            fontSize: 16, color: AppColors.black100),
+                          fontSize: 16,
+                          color: AppColors.black100,
+                        ),
                       ),
                     ],
                   ),
@@ -262,7 +271,9 @@ class _SupplierLimbahPakanDetailPageState
                           Text(
                             'Alamat Supplier:',
                             style: AppTextStyle.semiBold.copyWith(
-                                fontSize: 16, color: AppColors.black100),
+                              fontSize: 16,
+                              color: AppColors.black100,
+                            ),
                           ),
                         ],
                       ),
@@ -270,7 +281,9 @@ class _SupplierLimbahPakanDetailPageState
                       Text(
                         widget.alamatLengkap,
                         style: AppTextStyle.medium.copyWith(
-                            fontSize: 14, color: AppColors.black100),
+                          fontSize: 14,
+                          color: AppColors.black100,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -282,83 +295,98 @@ class _SupplierLimbahPakanDetailPageState
 
                   // =============== 2) TOMBOL MAPS & HUBUNGI LEBIH RAPI ===============
                   // Wrap membuatnya responsif (berpindah baris bila sempit) TANPA menghilangkan elemen
-                  LayoutBuilder(builder: (context, constraints) {
-                    final bool veryNarrow = constraints.maxWidth < 360;
-                    final double btnHeight = 50;
-                    final double iconSize = veryNarrow ? 14 : 16;
-                    final double fontSize = veryNarrow ? 12 : 14;
-                    final double buttonGap = 12;
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool veryNarrow = constraints.maxWidth < 360;
+                      final double btnHeight = 50;
+                      final double iconSize = veryNarrow ? 14 : 16;
+                      final double fontSize = veryNarrow ? 12 : 14;
+                      final double buttonGap = 12;
 
-                    // minta masing2 tombol mencoba ambil 0.5 lebar minus gap agar konsisten
-                    final double targetWidth =
-                        (constraints.maxWidth - buttonGap) / 2;
+                      // minta masing2 tombol mencoba ambil 0.5 lebar minus gap agar konsisten
+                      final double targetWidth =
+                          (constraints.maxWidth - buttonGap) / 2;
 
-                    return Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      runSpacing: 12,
-                      spacing: buttonGap,
-                      children: [
-                        _OutlinedActionButton(
-                          width: targetWidth,
-                          height: btnHeight,
-                          iconPath:
-                              'assets/supplier_pakan_assets/icons/ic_location.png',
-                          iconSize: iconSize,
-                          label: 'Lokasi Maps',
-                          labelSize: fontSize,
-                          color: AppColors.green01,
-                          onTap: () async {
-                            final link = widget.mapsLink;
-                            if (link != null && link.isNotEmpty) {
-                              final Uri uri = Uri.parse(link);
+                      return Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 12,
+                        spacing: buttonGap,
+                        children: [
+                          _OutlinedActionButton(
+                            width: targetWidth,
+                            height: btnHeight,
+                            iconPath:
+                                'assets/supplier_pakan_assets/icons/ic_location.png',
+                            iconSize: iconSize,
+                            label: 'Lokasi Maps',
+                            labelSize: fontSize,
+                            color: AppColors.green01,
+                            onTap: () async {
+                              final link = widget.mapsLink;
+                              if (link != null && link.isNotEmpty) {
+                                final Uri uri = Uri.parse(link);
 
-                              if (await canLaunchUrl(uri)) {
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(
+                                    uri,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                } else {
+                                  SnackBar(
+                                    content: Text(
+                                      'Tidak bisa membuka Data Lokasi',
+                                    ),
+                                  );
+                                }
+                              } else {
+                                SnackBar(
+                                  content: Text(
+                                    'Tidak bisa menemukan Data Lokasi',
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          _FilledActionButton(
+                            width: targetWidth,
+                            height: btnHeight,
+                            iconPath:
+                                'assets/supplier_pakan_assets/icons/ic_message.png',
+                            iconSize: iconSize,
+                            label: 'Hubungi Penjual',
+                            labelSize: fontSize,
+                            color: AppColors.green01,
+                            onTap: () async {
+                              final phone = widget.phoneNumber ?? '';
+                              if (phone.isEmpty) {
+                                SnackBar(
+                                  content: Text('Nomor telepon tidak tersedia'),
+                                );
+                                return;
+                              }
+
+                              final whatsappNumber = toWhatsappNumber(phone);
+                              final url = Uri.parse(
+                                'https://wa.me/$whatsappNumber',
+                              );
+
+                              if (await canLaunchUrl(url)) {
                                 await launchUrl(
-                                  uri,
-                                  mode: LaunchMode.externalApplication,
+                                  url,
+                                  mode: LaunchMode
+                                      .externalApplication, // buka app WA kalau ada
                                 );
                               } else {
-                                SnackBar(content: Text('Tidak bisa membuka Data Lokasi'));
+                                SnackBar(
+                                  content: Text('Tidak bisa membuka WhatsApp'),
+                                );
                               }
-                            } else {
-                              
-                                SnackBar(content: Text('Tidak bisa menemukan Data Lokasi'));
-                            }
-                          },
-                        ),
-                        _FilledActionButton(
-                          width: targetWidth,
-                          height: btnHeight,
-                          iconPath:
-                              'assets/supplier_pakan_assets/icons/ic_message.png',
-                          iconSize: iconSize,
-                          label: 'Hubungi Penjual',
-                          labelSize: fontSize,
-                          color: AppColors.green01,
-                          onTap: () async {
-                            final phone = widget.phoneNumber ?? '';
-                            if (phone.isEmpty) {
-                              SnackBar(content: Text('Nomor telepon tidak tersedia'));
-                              return;
-                            }
-
-                            final whatsappNumber = toWhatsappNumber(phone);
-                            final url = Uri.parse('https://wa.me/$whatsappNumber');
-
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(
-                                url,
-                                mode: LaunchMode.externalApplication, // buka app WA kalau ada
-                              );
-                            } else {
-                              SnackBar(content: Text('Tidak bisa membuka WhatsApp'));
-                            }
-                          },
-
-                        ),
-                      ],
-                    );
-                  }),
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 15),
 
@@ -377,7 +405,6 @@ class _SupplierLimbahPakanDetailPageState
                       ExpandableDetailText(text: widget.detail, trimLines: 3),
                     ],
                   ),
-
 
                   const SizedBox(height: 15),
 
@@ -431,7 +458,6 @@ class _SupplierLimbahPakanDetailPageState
                     ],
                   ),
 
-
                   const SizedBox(height: 55),
                 ],
               ),
@@ -446,7 +472,7 @@ class _SupplierLimbahPakanDetailPageState
   Widget _buildImageCarousel(BuildContext context) {
     final double fixedHeight = 240; // tinggi seragam untuk semua gambar
     final images = _imageList.isEmpty
-        ? ['assets/supplier_pakan_assets/images/sekam.png']
+        ? ['https://hawariyyun.my.id/assets/images/sekam.jpg']
         : _imageList;
 
     return SizedBox(
@@ -461,22 +487,10 @@ class _SupplierLimbahPakanDetailPageState
             itemCount: images.length,
             onPageChanged: (idx) => setState(() => _currentImage = idx),
             itemBuilder: (context, index) {
-              String imagePath = images[index];
+              final imagePath = images[index];
               return ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: imagePath.startsWith('http')
-                ? Image.network(
-                    imagePath,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: fixedHeight,
-                  )
-                : Image.asset(
-                    imagePath,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: fixedHeight,
-                  ),
+                child: _buildProductImage(imagePath, fixedHeight),
               );
             },
           ),
@@ -508,6 +522,32 @@ class _SupplierLimbahPakanDetailPageState
     );
   }
 
+  Widget _buildProductImage(String imagePath, double height) {
+    final resolvedPath = normalizeAssetUrl(imagePath);
+    if (resolvedPath.startsWith('http://') ||
+        resolvedPath.startsWith('https://')) {
+      return Image.network(
+        resolvedPath,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: height,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          'assets/home_assets/images/img_not_found.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: height,
+        ),
+      );
+    }
+
+    return Image.asset(
+      resolvedPath,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: height,
+    );
+  }
 }
 
 // ===================== Header (tetap) =====================
@@ -515,9 +555,7 @@ Widget _buildHeaderSection(BuildContext context) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.12,
     width: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppColors.gradasi01,
-    ),
+    decoration: BoxDecoration(gradient: AppColors.gradasi01),
     child: Stack(
       children: [
         CustomImageView(
@@ -544,8 +582,10 @@ Widget _buildHeaderSection(BuildContext context) {
               const SizedBox(width: 10),
               Text(
                 'Detail Produk',
-                style: AppTextStyle.medium
-                    .copyWith(fontSize: 20, color: AppColors.white100),
+                style: AppTextStyle.medium.copyWith(
+                  fontSize: 20,
+                  color: AppColors.white100,
+                ),
               ),
             ],
           ),
@@ -585,7 +625,9 @@ class _OutlinedActionButton extends StatelessWidget {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: color, width: 1),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           backgroundColor: Colors.transparent,
         ),
@@ -594,14 +636,8 @@ class _OutlinedActionButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             iconPath.startsWith('http')
-            ? Image.network(
-                iconPath,
-                height: iconSize,
-              )
-            : Image.asset(
-                iconPath,
-                height: iconSize,
-              ),
+                ? Image.network(iconPath, height: iconSize)
+                : Image.asset(iconPath, height: iconSize),
             const SizedBox(width: 8),
             Flexible(
               child: FittedBox(
@@ -651,7 +687,9 @@ class _FilledActionButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           elevation: 0,
         ),
@@ -660,14 +698,8 @@ class _FilledActionButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             iconPath.startsWith('http')
-            ? Image.network(
-                iconPath,
-                height: iconSize,
-              )
-            : Image.asset(
-                iconPath,
-                height: iconSize,
-              ),
+                ? Image.network(iconPath, height: iconSize)
+                : Image.asset(iconPath, height: iconSize),
             const SizedBox(width: 8),
             Flexible(
               child: FittedBox(
@@ -687,4 +719,3 @@ class _FilledActionButton extends StatelessWidget {
     );
   }
 }
-

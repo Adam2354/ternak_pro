@@ -6,6 +6,7 @@ import '../../../models/KonsultasiPakarItem.dart' as KonsultasiPakarItemModel;
 
 import '../../../services/api_service.dart';
 import '../../../ui_pages/konsultasi_pakar/konsultasi_pakar_detail_page.dart';
+import '../custom_image_view.dart';
 
 class KonsultasiPakarItem extends StatelessWidget {
   final String imageUrl;
@@ -43,9 +44,7 @@ class KonsultasiPakarItem extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: AppColors.blue01,
-          ),
+          border: Border.all(color: AppColors.blue01),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -53,11 +52,23 @@ class KonsultasiPakarItem extends StatelessWidget {
           children: [
             Row(
               children: [
-               // kalau pakai CircleAvatar (harus radius = diameter / 2)
-                CircleAvatar(
-                  radius: 37.5, // diameter = 75
-                  backgroundColor: AppColors.green01,
-                  backgroundImage: NetworkImage(imageUrl),
+                // kalau pakai CircleAvatar (harus radius = diameter / 2)
+                ClipOval(
+                  child: Container(
+                    width: 75,
+                    height: 75,
+                    color: AppColors.green01,
+                    child: CustomImageView(
+                      imagePath: imageUrl.isEmpty
+                          ? 'assets/home_assets/images/img_not_found.png'
+                          : imageUrl,
+                      width: 75,
+                      height: 75,
+                      fit: BoxFit.cover,
+                      placeHolder:
+                          'assets/home_assets/images/img_not_found.png',
+                    ),
+                  ),
                 ),
                 SizedBox(width: 10),
                 Column(
@@ -82,12 +93,14 @@ class KonsultasiPakarItem extends StatelessWidget {
                     Row(
                       children: [
                         Image.asset(
-                        'assets/konsultasi_pakan_assets/icons/ic_time.png',
-                        width: 14,
-                        height: 14,),
+                          'assets/konsultasi_pakan_assets/icons/ic_time.png',
+                          width: 14,
+                          height: 14,
+                        ),
                         SizedBox(width: 5),
                         Text(
-                          "$pukulMulai - $pukulAkhir" ' WIB',
+                          "$pukulMulai - $pukulAkhir"
+                          ' WIB',
                           style: AppTextStyle.medium.copyWith(
                             fontSize: 14,
                             color: AppColors.black100,
@@ -96,35 +109,31 @@ class KonsultasiPakarItem extends StatelessWidget {
                       ],
                     ),
                   ],
-                )
-                          
+                ),
               ],
             ),
             SizedBox(height: 17),
             GestureDetector(
-                onTap: onTap,
-                child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+              onTap: onTap,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: AppColors.gradasi01,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Text(
+                    'Jadwalkan Konsultasi',
+                    style: AppTextStyle.medium.copyWith(
+                      color: AppColors.white100,
+                      fontSize: 16,
                     ),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.gradasi01,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                child: Text(
-                      'Jadwalkan Konsultasi',
-                      style: AppTextStyle.medium.copyWith(
-                        color: AppColors.white100,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    ),
+                    textAlign: TextAlign.center,
                   ),
+                ),
               ),
+            ),
           ],
         ),
       ),
@@ -135,10 +144,7 @@ class KonsultasiPakarItem extends StatelessWidget {
 class KonsultasiPakarList extends StatefulWidget {
   final String searchQuery;
 
-  const KonsultasiPakarList({
-    super.key,
-    this.searchQuery = '',
-  });
+  const KonsultasiPakarList({super.key, this.searchQuery = ''});
 
   @override
   State<KonsultasiPakarList> createState() => _KonsultasiPakarListState();
@@ -174,34 +180,37 @@ class _KonsultasiPakarListState extends State<KonsultasiPakarList> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator while fetching
+          ? Center(
+              child: CircularProgressIndicator(),
+            ) // Show loading indicator while fetching
           : items.isEmpty
-              ? Center(child: Text("Tidak ada Konsultasi Pakar tersedia."))
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return KonsultasiPakarItem(
-                      imageUrl: item.imageUrl,
-                      nama: item.nama,
-                      spealis: item.spealis,
-                      pukulMulai: item.pukulMulai.toString(),
-                      pukulAkhir: item.pukulAkhir.toString(),
-                      harga: item.harga,
-                      durasi: item.durasi,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => KonsultasiPakarDetailPage.fromMap(item.toJson()),
-                          ),
-                        );
-                      },
+          ? Center(child: Text("Tidak ada Konsultasi Pakar tersedia."))
+          : ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return KonsultasiPakarItem(
+                  imageUrl: item.imageUrl,
+                  nama: item.nama,
+                  spealis: item.spealis,
+                  pukulMulai: item.pukulMulai.toString(),
+                  pukulAkhir: item.pukulAkhir.toString(),
+                  harga: item.harga,
+                  durasi: item.durasi,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            KonsultasiPakarDetailPage.fromMap(item.toJson()),
+                      ),
                     );
                   },
-                ),
+                );
+              },
+            ),
     );
   }
 }

@@ -107,10 +107,12 @@ void checkLoginStatus() async {
       print('User data saved to localStorage');
 
       // Menghapus query string dari URL tanpa reload
-      html.window.location.href = 'https://app.ternakpro.id';
+      html.window.location.href = 'https://app.hawariyyun.my.id';
+      // html.window.location.href = 'https://app.ternakpro.id';
     } else {
       // Jika data tidak valid, redirect ke login
-      html.window.location.href = 'https://ternakpro.id/login';
+      html.window.location.href = 'https://app.hawariyyun.my.id/login';
+      // html.window.location.href = 'https://ternakpro.id/login';
     }
   }
 }

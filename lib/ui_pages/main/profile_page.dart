@@ -284,7 +284,7 @@ Widget _buildHeaderSection(BuildContext context, dataUser) {
           fit: BoxFit.cover,
         ),
         Positioned(
-          top:65,
+          top: 65,
           left: 24,
           right: 24,
           child: Row(
@@ -651,7 +651,7 @@ Widget _panduanSettings(BuildContext context) {
           menuName: 'FAQ',
           placeHolder: '',
           onTap: () {
-            Uri url = Uri.parse('https://ternakpro.id/#faq');
+            Uri url = Uri.parse('https://hawariyyun.my.id/#faq');
             launchUrl(url);
             // Navigator.pushNamed(context, '/ternakpro-web');
           },
@@ -662,7 +662,7 @@ Widget _panduanSettings(BuildContext context) {
           menuName: 'Fitur',
           placeHolder: '',
           onTap: () {
-            Uri url = Uri.parse('https://ternakpro.id/#fitur');
+            Uri url = Uri.parse('https://hawariyyun.my.id/#fitur');
             launchUrl(url);
             // Navigator.pushNamed(context, '/ternakpro-web');
           },
@@ -673,7 +673,7 @@ Widget _panduanSettings(BuildContext context) {
           menuName: 'Hubungi Kami',
           placeHolder: '',
           onTap: () {
-            Uri url = Uri.parse('https://ternakpro.id');
+            Uri url = Uri.parse('https://hawariyyun.my.id');
             launchUrl(url);
             // Navigator.pushNamed(context, '/ternakpro-web');
           },

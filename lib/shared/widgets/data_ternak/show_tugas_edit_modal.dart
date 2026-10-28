@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../theme.dart';
+import '../custom_image_view.dart';
+
+Widget _buildTaskIcon(String iconPath) {
+  final resolvedPath = normalizeAssetUrl(iconPath);
+  final isNetworkImage =
+      resolvedPath.startsWith('http://') || resolvedPath.startsWith('https://');
+
+  return isNetworkImage
+      ? Image.network(resolvedPath, width: 40, height: 40, fit: BoxFit.contain)
+      : Image.asset(resolvedPath, width: 40, height: 40, fit: BoxFit.contain);
+}
 
 Future<Map<String, dynamic>?> showTugasEditModal(
   BuildContext context, {
@@ -19,9 +30,9 @@ Future<Map<String, dynamic>?> showTugasEditModal(
     required String time,
     required String catatan,
     required String tglTugas,
-  }) onSave,
+  })
+  onSave,
 }) async {
-  
   // Format date for display (e.g., dd/MM/yyyy)
   String formatDisplayDate(String? date) {
     try {
@@ -37,12 +48,13 @@ Future<Map<String, dynamic>?> showTugasEditModal(
   ValueNotifier<String> tglTugasNotifier = ValueNotifier(
     formatDisplayDate(tglTugas),
   );
-  TextEditingController catatanController = TextEditingController(text: catatan);
+  TextEditingController catatanController = TextEditingController(
+    text: catatan,
+  );
 
   final Color teal = const Color(0xFF00C4B4);
   final Color tealDark = const Color(0xFF089E96);
   final Color border = const Color(0xFF00C4B4);
-
 
   // Format date for submission (e.g., yyyy-MM-dd)
   String _formatSubmissionDate(String? date) {
@@ -53,8 +65,12 @@ Future<Map<String, dynamic>?> showTugasEditModal(
       return DateFormat('yyyy-MM-dd').format(DateTime.now());
     }
   }
+
   // Dialog option item
-  Widget _buildDialogOption(String value, ValueNotifier<String> statusNotifier) {
+  Widget _buildDialogOption(
+    String value,
+    ValueNotifier<String> statusNotifier,
+  ) {
     return GestureDetector(
       onTap: () {
         statusNotifier.value = value;
@@ -68,8 +84,8 @@ Future<Map<String, dynamic>?> showTugasEditModal(
               value == 'Sudah'
                   ? 'assets/home_assets/icons/ic_check_green.png'
                   : (value == 'Tertunda'
-                      ? 'assets/home_assets/icons/ic_check_yellow.png'
-                      : 'assets/home_assets/icons/ic_check_yellow.png'),
+                        ? 'assets/home_assets/icons/ic_check_yellow.png'
+                        : 'assets/home_assets/icons/ic_check_yellow.png'),
               width: 16,
               height: 16,
             ),
@@ -112,8 +128,6 @@ Future<Map<String, dynamic>?> showTugasEditModal(
     );
   }
 
-  
-
   InputDecoration _pillInput({Widget? prefixIcon, Widget? suffixIcon}) {
     return InputDecoration(
       isDense: true,
@@ -136,7 +150,10 @@ Future<Map<String, dynamic>?> showTugasEditModal(
     final init = () {
       try {
         final parts = timeNotifier.value.split(':');
-        return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        return TimeOfDay(
+          hour: int.parse(parts[0]),
+          minute: int.parse(parts[1]),
+        );
       } catch (_) {
         return now;
       }
@@ -176,9 +193,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
         backgroundColor: AppColors.bgLight,
         insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
         contentPadding: const EdgeInsets.all(0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Container(
           width: double.maxFinite,
           padding: const EdgeInsets.all(16),
@@ -207,21 +222,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                       color: const Color(0xFFEAF7F7),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Center(
-                      child: iconPath.startsWith('http')
-                        ? Image.network(
-                            iconPath,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.contain,
-                          )
-                        : Image.asset(
-                            iconPath,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.contain,
-                          ),
-                    ),
+                    child: Center(child: _buildTaskIcon(iconPath)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -240,10 +241,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                 // Label: Status Perawatan
                 Text(
                   'Status Perawatan',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 // Status perawatan (custom dialog)
@@ -267,8 +265,8 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                               status == 'Sudah'
                                   ? 'assets/home_assets/icons/ic_check_green.png'
                                   : (status == 'Tertunda'
-                                      ? 'assets/home_assets/icons/ic_check_yellow.png'
-                                      : 'assets/home_assets/icons/ic_check_yellow.png'),
+                                        ? 'assets/home_assets/icons/ic_check_yellow.png'
+                                        : 'assets/home_assets/icons/ic_check_yellow.png'),
                               width: 16,
                               height: 16,
                             ),
@@ -292,10 +290,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                 // Label: Tanggal Tugas
                 Text(
                   'Tanggal Tugas',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 // Input: Tanggal Tugas
@@ -323,10 +318,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                 // Label: Waktu
                 Text(
                   'Waktu',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 // Input: Waktu
@@ -354,10 +346,7 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                 // Label: Catatan (Opsional)
                 Text(
                   'Catatan (Opsional)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 // Catatan
@@ -397,7 +386,9 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                               : (statusNotifier.value == 'Tertunda' ? 2 : 3),
                           time: timeNotifier.value,
                           catatan: catatanController.text.trim(),
-                          tglTugas: _formatSubmissionDate(tglTugasNotifier.value),
+                          tglTugas: _formatSubmissionDate(
+                            tglTugasNotifier.value,
+                          ),
                         );
                         final updatedData = {
                           'id_tugas': idTugas,
@@ -409,7 +400,9 @@ Future<Map<String, dynamic>?> showTugasEditModal(
                           'catatan': catatanController.text.trim(),
                           'time': timeNotifier.value,
                           'icon_path': iconPath,
-                          'tgl_tugas': _formatSubmissionDate(tglTugasNotifier.value),
+                          'tgl_tugas': _formatSubmissionDate(
+                            tglTugasNotifier.value,
+                          ),
                         };
                         Navigator.of(context).pop(updatedData);
                       },

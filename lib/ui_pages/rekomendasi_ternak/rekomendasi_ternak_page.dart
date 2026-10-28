@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -46,10 +45,7 @@ class CustomInputRekomendasiTernakField extends StatelessWidget {
           controller: controller,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              color: Colors.black54,
-            ),
+            hintStyle: const TextStyle(fontSize: 14, color: Colors.black54),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: Colors.black54),
@@ -66,9 +62,7 @@ class CustomInputRekomendasiTernakField extends StatelessWidget {
             ),
           ),
           keyboardType: keyboardTipe,
-          inputFormatters: [
-            if (isHarga) _moneyFormatter(),
-          ],
+          inputFormatters: [if (isHarga) _moneyFormatter()],
         ),
         const SizedBox(height: 16),
       ],
@@ -77,8 +71,7 @@ class CustomInputRekomendasiTernakField extends StatelessWidget {
 
   TextInputFormatter _moneyFormatter() {
     return TextInputFormatter.withFunction((oldValue, newValue) {
-      final digitsOnly =
-          newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+      final digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
 
       final formatter = NumberFormat('#,##0', 'id_ID');
       String formatted = '';
@@ -93,9 +86,7 @@ class CustomInputRekomendasiTernakField extends StatelessWidget {
 
       return TextEditingValue(
         text: formatted,
-        selection: TextSelection.collapsed(
-          offset: formatted.length,
-        ),
+        selection: TextSelection.collapsed(offset: formatted.length),
       );
     });
   }
@@ -122,8 +113,7 @@ class CustomDropdownInputTernak extends StatefulWidget {
       _CustomDropdownInputTernakState();
 }
 
-class _CustomDropdownInputTernakState
-    extends State<CustomDropdownInputTernak> {
+class _CustomDropdownInputTernakState extends State<CustomDropdownInputTernak> {
   late String selectedValue;
 
   @override
@@ -230,9 +220,7 @@ class _CustomDropdownInputTernakState
                   },
                   activeColor: AppColors.green01,
                   visualDensity: VisualDensity.compact,
-                  fillColor: WidgetStateProperty.all(
-                    AppColors.green01,
-                  ),
+                  fillColor: WidgetStateProperty.all(AppColors.green01),
                 );
               }).toList(),
             ),
@@ -247,9 +235,7 @@ Widget _buildHeaderSection(BuildContext context) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.12,
     width: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppColors.gradasi01,
-    ),
+    decoration: BoxDecoration(gradient: AppColors.gradasi01),
     child: Stack(
       children: [
         CustomImageView(
@@ -296,25 +282,21 @@ class RekomendasiTernakPage extends StatefulWidget {
   const RekomendasiTernakPage({super.key});
 
   @override
-  State<RekomendasiTernakPage> createState() =>
-      _RekomendasiTernakPageState();
+  State<RekomendasiTernakPage> createState() => _RekomendasiTernakPageState();
 }
 
-class _RekomendasiTernakPageState
-    extends State<RekomendasiTernakPage> {
-  final TextEditingController _panjangLahanController =
-      TextEditingController();
+class _RekomendasiTernakPageState extends State<RekomendasiTernakPage> {
+  final TextEditingController _panjangLahanController = TextEditingController();
 
-  final TextEditingController _lebarLahanController =
-      TextEditingController();
+  final TextEditingController _lebarLahanController = TextEditingController();
 
-  final TextEditingController _modalController =
-      TextEditingController();
+  final TextEditingController _modalController = TextEditingController();
 
   String _selectedPengalaman = '';
   String _selectedWaktuPerawatan = '';
 
   bool _isLoading = false;
+  String _loadingMessage = 'Menghubungi server rekomendasi...';
   String? _errorMessage;
 
   @override
@@ -459,8 +441,27 @@ class _RekomendasiTernakPageState
             Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.35),
-                child: const Center(
-                  child: CircularProgressIndicator(),
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 14),
+                        Text(
+                          _loadingMessage,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyle.semiBold.copyWith(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -497,9 +498,7 @@ class _RekomendasiTernakPageState
         return value.replaceAll(RegExp(r'[^0-9]'), '');
       }
 
-      final modal = double.tryParse(
-        normalizeNumber(_modalController.text),
-      );
+      final modal = double.tryParse(normalizeNumber(_modalController.text));
 
       final panjang = double.tryParse(
         normalizeNumber(_panjangLahanController.text),
@@ -522,13 +521,25 @@ class _RekomendasiTernakPageState
         if (!mounted) return;
 
         setState(() {
-          _errorMessage =
-              'Modal dan ukuran lahan harus lebih dari nol.';
+          _errorMessage = 'Modal dan ukuran lahan harus lebih dari nol.';
         });
         return;
       }
 
       final luas = panjang * lebar;
+
+      // Tolak data yang jelas berada di bawah batas awal sebelum memanggil
+      // server AI, sehingga pengguna langsung mendapat informasi.
+      if (modal < 2500000 || luas < 4) {
+        await _showInsufficientDataDialog();
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _loadingMessage = 'Menghitung kecocokan ternak...';
+        });
+      }
 
       int waktu = 1;
 
@@ -583,18 +594,34 @@ class _RekomendasiTernakPageState
       final rawData = response['data'];
 
       if (rawData is! Map) {
-        throw Exception(
-          'Format respons rekomendasi tidak valid.',
-        );
+        throw Exception('Format respons rekomendasi tidak valid.');
       }
 
-      final recommendationData =
-          Map<String, dynamic>.from(rawData);
+      final recommendationData = Map<String, dynamic>.from(rawData);
 
       if (recommendationData['recommendations'] is! List) {
-        throw Exception(
-          'Data rekomendasi tidak ditemukan pada respons API.',
-        );
+        throw Exception('Data rekomendasi tidak ditemukan pada respons API.');
+      }
+
+      final recommendations = recommendationData['recommendations'] as List;
+      final hasEligibleRecommendation = recommendations.any((rawItem) {
+        if (rawItem is! Map) return false;
+
+        final item = Map<String, dynamic>.from(rawItem);
+        final estimasiEkor = _parseRecommendationNumber(item['estimasi_ekor']);
+        final modalMinimum = _parseRecommendationNumber(item['modal_minimum']);
+        final lahanMinimum = _parseRecommendationNumber(item['lahan_minimum']);
+        final feasible = item['feasible'] == true || estimasiEkor > 0;
+
+        return feasible &&
+            estimasiEkor > 0 &&
+            modal >= modalMinimum &&
+            luas >= lahanMinimum;
+      });
+
+      if (!hasEligibleRecommendation) {
+        await _showInsufficientDataDialog();
+        return;
       }
 
       await Navigator.of(context).push<void>(
@@ -623,6 +650,34 @@ class _RekomendasiTernakPageState
     }
   }
 
+  double _parseRecommendationNumber(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString().replaceAll(',', '.') ?? '') ?? 0;
+  }
+
+  Future<void> _showInsufficientDataDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Data belum sesuai'),
+          content: const Text(
+            'Modal, luas lahan, atau kapasitas yang dimasukkan belum memenuhi '
+            'syarat minimum untuk beternak. Rekomendasi ternak belum dapat '
+            'ditampilkan.\n\nSilakan tingkatkan modal atau luas lahan, '
+            'kemudian coba lagi.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Kembali ke input'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _panjangLahanController.dispose();
@@ -635,10 +690,7 @@ class _RekomendasiTernakPageState
 class BottomActionButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const BottomActionButton({
-    super.key,
-    required this.onPressed,
-  });
+  const BottomActionButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

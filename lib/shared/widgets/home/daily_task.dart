@@ -8,9 +8,12 @@ import '../custom_image_view.dart';
 import '../data_ternak/show_tugas_edit_modal.dart';
 import '../onboarding_buttom.dart';
 
-
-
-Widget buildDailyTasks(BuildContext context, List<DailyTaskItem>? tasks, bool isLoading) {
+Widget buildDailyTasks(
+  BuildContext context,
+  List<DailyTaskItem>? tasks,
+  bool isLoading, {
+  Future<bool> Function(DailyTaskItem task)? onDelete,
+}) {
   return Container(
     margin: EdgeInsets.only(left: 24, right: 24, top: 8),
     child: Column(
@@ -25,7 +28,7 @@ Widget buildDailyTasks(BuildContext context, List<DailyTaskItem>? tasks, bool is
             ),
             GestureDetector(
               onTap: () {
-                 Navigator.pushNamed(
+                Navigator.pushNamed(
                   context,
                   '/list-data-ternak-tugas',
                   arguments: {'initialIndex': 1},
@@ -45,10 +48,8 @@ Widget buildDailyTasks(BuildContext context, List<DailyTaskItem>? tasks, bool is
             ),
           ],
         ),
-        if (isLoading) 
-          Center(child: TernakProBoxLoading()),
-        if (tasks == null || tasks.isEmpty && !isLoading)
-          SizedBox(height: 8),
+        if (isLoading) Center(child: TernakProBoxLoading()),
+        if (tasks == null || tasks.isEmpty && !isLoading) SizedBox(height: 8),
         if (tasks == null || tasks.isEmpty && !isLoading)
           Container(
             padding: EdgeInsets.all(32),
@@ -88,7 +89,9 @@ Widget buildDailyTasks(BuildContext context, List<DailyTaskItem>? tasks, bool is
             ),
           )
         else
-          ...tasks.map((task) => buildTaskItem(context, task)),
+          ...tasks.map(
+            (task) => buildTaskItem(context, task, onDelete: onDelete),
+          ),
         SizedBox(height: 16),
         // GestureDetector(
         //   onTap: () {
@@ -132,17 +135,26 @@ Widget buildDailyTasks(BuildContext context, List<DailyTaskItem>? tasks, bool is
   );
 }
 
-
-Widget buildTaskItem(BuildContext context, DailyTaskItem task) {
+Widget buildTaskItem(
+  BuildContext context,
+  DailyTaskItem task, {
+  Future<bool> Function(DailyTaskItem task)? onDelete,
+}) {
   return LayoutBuilder(
     builder: (context, constraints) {
       double maxWidth = constraints.maxWidth;
-      double iconSize = (maxWidth * 0.07).clamp(24.0, 36.0); // Responsif untuk ukuran ikon
-      double fontSizeSmall = (maxWidth * 0.04).clamp(12.0, 14.0); // Responsif untuk font
+      double iconSize = (maxWidth * 0.07).clamp(
+        24.0,
+        36.0,
+      ); // Responsif untuk ukuran ikon
+      double fontSizeSmall = (maxWidth * 0.04).clamp(
+        12.0,
+        14.0,
+      ); // Responsif untuk font
 
       return InkWell(
         onTap: () {
-            showTugasEditModal(
+          showTugasEditModal(
             context,
             idTugas: task.idTugas,
             title: task.title,
@@ -152,54 +164,56 @@ Widget buildTaskItem(BuildContext context, DailyTaskItem task) {
             iconPath: task.iconPath,
             catatan: task.catatan,
             tglTugas: task.tglTugas, // Added
-            onSave: ({
-              required String status,
-              required int statusId,
-              required String time,
-              required String catatan,
-              required String tglTugas, // Added
-            }) async {
-              try {
-                // Load credentials (e.g., user_id) for the API call
-                final credentials = await ApiService().loadCredentials();
-                final userId = credentials['user_id'];
-                final formattedWaktuTugas = "$time:00";
+            onSave:
+                ({
+                  required String status,
+                  required int statusId,
+                  required String time,
+                  required String catatan,
+                  required String tglTugas, // Added
+                }) async {
+                  try {
+                    // Load credentials (e.g., user_id) for the API call
+                    final credentials = await ApiService().loadCredentials();
+                    final userId = credentials['user_id'];
+                    final formattedWaktuTugas = "$time:00";
 
-                // Call API to update the task
-                await ApiService().updateDataTugas(
-                  context: context,
-                  idTugas: task.idTugas,
-                  userId: userId,
-                  statusTugasId: statusId,
-                  waktuTugas: formattedWaktuTugas,
-                  catatan: catatan,
-                  tglTugas: tglTugas, // Added
-                  isHome: true,
-                );
+                    // Call API to update the task
+                    await ApiService().updateDataTugas(
+                      context: context,
+                      idTugas: task.idTugas,
+                      userId: userId,
+                      statusTugasId: statusId,
+                      waktuTugas: formattedWaktuTugas,
+                      catatan: catatan,
+                      tglTugas: tglTugas, // Added
+                      isHome: true,
+                    );
 
-                // Debugging output
-                debugPrint(
-                  'SAVE -> idTugas:${task.idTugas} title:${task.title} status:$status time:$time catatan:$catatan tglTugas:$tglTugas',
-                );
+                    // Debugging output
+                    debugPrint(
+                      'SAVE -> idTugas:${task.idTugas} title:${task.title} status:$status time:$time catatan:$catatan tglTugas:$tglTugas',
+                    );
 
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Tugas berhasil diperbarui'),
-                    backgroundColor: AppColors.green01,
-                  ),
-                );
-                
-              } catch (e) {
-                // Show error message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Gagal memperbarui tugas: ${e.toString()}'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Tugas berhasil diperbarui'),
+                        backgroundColor: AppColors.green01,
+                      ),
+                    );
+                  } catch (e) {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Gagal memperbarui tugas: ${e.toString()}',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
           );
         },
         child: Container(
@@ -235,35 +249,39 @@ Widget buildTaskItem(BuildContext context, DailyTaskItem task) {
                     children: [
                       Text(
                         task.title,
-                        style: AppTextStyle.semiBold.copyWith(fontSize: fontSizeSmall),
+                        style: AppTextStyle.semiBold.copyWith(
+                          fontSize: fontSizeSmall,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Row(
                         children: [
                           Image.asset(
-                            task.status == 'Sudah' 
-                                ? 'assets/home_assets/icons/ic_check_green.png' 
+                            task.status == 'Sudah'
+                                ? 'assets/home_assets/icons/ic_check_green.png'
                                 : 'assets/home_assets/icons/ic_check_yellow.png',
                             width: 12,
-                            height: 12, 
+                            height: 12,
                           ),
                           SizedBox(width: 4),
                           Text(
                             task.status,
                             style: AppTextStyle.semiBold.copyWith(
                               fontSize: fontSizeSmall,
-                              color: task.status == 'Tertunda' 
-                                  ? AppColors.yellow500 
-                                  : (task.status == 'Belum' 
-                                      ? AppColors.primaryRed 
-                                      : (task.status == 'Sudah' 
-                                          ? AppColors.green01 
-                                          : AppColors.primaryRed)),
+                              color: task.status == 'Tertunda'
+                                  ? AppColors.yellow500
+                                  : (task.status == 'Belum'
+                                        ? AppColors.primaryRed
+                                        : (task.status == 'Sudah'
+                                              ? AppColors.green01
+                                              : AppColors.primaryRed)),
                             ),
                           ),
                           SizedBox(width: 10),
-                          Image.asset('assets/home_assets/icons/ic_dropdown.png', 
-                            width: 14, height: 14,
+                          Image.asset(
+                            'assets/home_assets/icons/ic_dropdown.png',
+                            width: 14,
+                            height: 14,
                           ),
                         ],
                       ),
@@ -274,27 +292,50 @@ Widget buildTaskItem(BuildContext context, DailyTaskItem task) {
               Row(
                 children: [
                   Image.asset(
-                    task.status == 'Sudah' 
-                        ? 'assets/home_assets/icons/ic_clock_green.png' 
+                    task.status == 'Sudah'
+                        ? 'assets/home_assets/icons/ic_clock_green.png'
                         : 'assets/home_assets/icons/ic_clock_red.png',
                     width: 12,
-                    height: 12, 
+                    height: 12,
                   ),
                   SizedBox(width: 4),
                   Text(
                     task.time,
                     style: AppTextStyle.medium.copyWith(
                       fontSize: fontSizeSmall,
-                      color: (task.status == 'Tertunda' || task.status == 'Belum') 
-                          ? AppColors.primaryRed 
-                          : (task.status == 'Sudah' 
-                              ? AppColors.green01 
-                              : AppColors.primaryRed),
+                      color:
+                          (task.status == 'Tertunda' || task.status == 'Belum')
+                          ? AppColors.primaryRed
+                          : (task.status == 'Sudah'
+                                ? AppColors.green01
+                                : AppColors.primaryRed),
                     ),
                   ),
-                  Image.asset('assets/home_assets/icons/ic_more.png' ,
-                    width: 18,
-                    height: 18, 
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    tooltip: 'Menu tugas',
+                    onSelected: (value) async {
+                      if (value == 'delete' && onDelete != null) {
+                        await onDelete(task);
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Hapus'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: Image.asset(
+                      'assets/home_assets/icons/ic_more.png',
+                      width: 18,
+                      height: 18,
+                    ),
                   ),
                 ],
               ),

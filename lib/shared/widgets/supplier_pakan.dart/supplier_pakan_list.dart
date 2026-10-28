@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:intl/intl.dart'; // Tambahkan import ini
 import 'package:ternak_pro/shared/widgets/custom_button.dart';
 import 'package:ternak_pro/shared/widgets/onboarding_buttom.dart';
@@ -7,6 +8,7 @@ import 'package:ternak_pro/shared/widgets/supplier_pakan.dart/hubungi_button.dar
 import '../../../services/api_service.dart';
 import '../../../ui_pages/supplier_pakan/supplier_limbah_pakan_detail_page.dart';
 import '../../theme.dart';
+import '../custom_image_view.dart';
 
 class SupplierPakanItem extends StatelessWidget {
   final String lokasi;
@@ -24,8 +26,8 @@ class SupplierPakanItem extends StatelessWidget {
     required this.noTelepon,
     required this.name,
     required this.harga,
-    required this.isStok, 
-    this.onTap, 
+    required this.isStok,
+    this.onTap,
   });
 
   String formatRupiah(int value) {
@@ -52,36 +54,42 @@ class SupplierPakanItem extends StatelessWidget {
               Container(
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.12,
-                decoration: BoxDecoration(
+                child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16.0),
-                    topRight: Radius.circular(16.0),
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  image: DecorationImage(
-                    image: AssetImage(imageUrl),
+                  child: CustomImageView(
+                    imagePath: imageUrl,
+                    width: double.infinity,
+                    height: double.infinity,
                     fit: BoxFit.cover,
+                    placeHolder: 'assets/home_assets/images/img_not_found.png',
                   ),
                 ),
               ),
-              
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                  child: SizedBox(
-                    height: 32, // kira-kira tinggi 2 baris teks
-                    child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      name,
-                      style: AppTextStyle.semiBold.copyWith(fontSize: 12),
-                      textAlign: TextAlign.left,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 2.0,
                     ),
+                    child: SizedBox(
+                      height: 32, // kira-kira tinggi 2 baris teks
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          name,
+                          style: AppTextStyle.semiBold.copyWith(fontSize: 12),
+                          textAlign: TextAlign.left,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
-                  ),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -89,38 +97,42 @@ class SupplierPakanItem extends StatelessWidget {
                       'RP ${formatRupiah(harga)}', // gunakan formatRupiah
                       textAlign: TextAlign.left,
                       style: AppTextStyle.semiBold.copyWith(
-                      fontSize: 16,
-                      color: AppColors.blue01,
+                        fontSize: 16,
+                        color: AppColors.blue01,
                       ),
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
                     child: RichText(
                       text: TextSpan(
-                      children: [
-                        TextSpan(
-                        text: 'Stok: ',
-                        style: AppTextStyle.medium.copyWith(
-                          color: Colors.black,
-                          fontSize: 12,
-                        ),
-                        ),
-                        TextSpan(
-                        text: isStok ? "Tersedia" : "Habis",
-                        style: AppTextStyle.medium.copyWith(
-                          color: isStok
-                            ? Colors.green
-                            : Colors.red,
-                          fontSize: 12,
-                        ),
-                        ),
-                      ],
+                        children: [
+                          TextSpan(
+                            text: 'Stok: ',
+                            style: AppTextStyle.medium.copyWith(
+                              color: Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                          TextSpan(
+                            text: isStok ? "Tersedia" : "Habis",
+                            style: AppTextStyle.medium.copyWith(
+                              color: isStok ? Colors.green : Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -136,11 +148,16 @@ class SupplierPakanItem extends StatelessWidget {
                   ),
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0, bottom: 15.0, left: 8.0, right: 8.0),
-      
+                      padding: const EdgeInsets.only(
+                        top: 5.0,
+                        bottom: 15.0,
+                        left: 8.0,
+                        right: 8.0,
+                      ),
+
                       child: FractionallySizedBox(
                         alignment: Alignment.center,
-                        child: HubungiButton(text: 'Hubungi Penjual')
+                        child: HubungiButton(text: 'Hubungi Penjual'),
                       ),
                     ),
                   ),
@@ -157,10 +174,7 @@ class SupplierPakanItem extends StatelessWidget {
 class SupplierPakanList extends StatefulWidget {
   final String searchQuery;
 
-  const SupplierPakanList({
-    super.key,
-    this.searchQuery = '',
-  });
+  const SupplierPakanList({super.key, this.searchQuery = ''});
 
   @override
   _SupplierPakanListState createState() => _SupplierPakanListState();
@@ -178,7 +192,8 @@ class _SupplierPakanListState extends State<SupplierPakanList> {
   // Fetch data from the API
   Future<List<Map<String, dynamic>>> _fetchSupplierPakanData() async {
     try {
-      List<Map<String, dynamic>> items = await ApiService().getAllSuplierPakan();
+      List<Map<String, dynamic>> items = await ApiService()
+          .getAllSuplierPakan();
       return items;
     } catch (e) {
       print('Error fetching data: $e');
@@ -189,10 +204,12 @@ class _SupplierPakanListState extends State<SupplierPakanList> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: supplierPakanFuture,  // Use the future for fetching data
+      future: supplierPakanFuture, // Use the future for fetching data
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());  // Show loading spinner
+          return Center(
+            child: CircularProgressIndicator(),
+          ); // Show loading spinner
         }
 
         if (snapshot.hasError) {
@@ -219,14 +236,15 @@ class _SupplierPakanListState extends State<SupplierPakanList> {
             crossAxisCount: 2,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
-            childAspectRatio: 0.65, // Ensure this matches the AspectRatio in Card
+            childAspectRatio:
+                0.65, // Ensure this matches the AspectRatio in Card
           ),
           itemCount: filtered.length,
           itemBuilder: (context, index) {
             final item = filtered[index];
             return SupplierPakanItem(
               lokasi: item['alamat_overview'],
-              imageUrl: (item['image_url'] as String).split(';').first,  // Use the first image URL
+              imageUrl: _firstImagePath(item['image_url']),
               noTelepon: item['no_tlp'].toString(),
               name: item['judul'],
               harga: item['harga'],
@@ -244,5 +262,22 @@ class _SupplierPakanListState extends State<SupplierPakanList> {
         );
       },
     );
+  }
+
+  String _firstImagePath(dynamic value) {
+    if (value is List && value.isNotEmpty) return value.first.toString();
+    if (value is String && value.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is List && decoded.isNotEmpty) {
+          return decoded.first.toString();
+        }
+      } on FormatException {
+        // The API also returns semicolon-separated image paths.
+      }
+      final paths = value.split(';');
+      return paths.first.trim();
+    }
+    return 'assets/home_assets/images/img_not_found.png';
   }
 }

@@ -20,7 +20,8 @@ class ListDataTernakTugasPage extends StatefulWidget {
   ListDataTernakTugasPageState createState() => ListDataTernakTugasPageState();
 }
 
-class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with SingleTickerProviderStateMixin {
+class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ApiService _apiService = ApiService();
 
@@ -33,9 +34,13 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
 
     try {
       // Mapping data ternak yang sudah diambil ke dalam DailyTaskItem
-      List<Ternakitem> ternakListData = await _apiService.getTernakUserAll(userId);
+      List<Ternakitem> ternakListData = await _apiService.getTernakUserAll(
+        userId,
+      );
 
-      List<Map<String, dynamic>> ternakListDataFinal = ternakListData.map((ternak) => ternak.toJson()).toList();
+      List<Map<String, dynamic>> ternakListDataFinal = ternakListData
+          .map((ternak) => ternak.toJson())
+          .toList();
 
       // Menunggu 3 detik sebelum mematikan _isLoadingTasks
       await Future.delayed(const Duration(seconds: 3));
@@ -52,9 +57,13 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
 
     try {
       // Mapping data tugas yang sudah diambil ke dalam DailyTaskItem
-      List<DailyTaskItem> tugasListData = await _apiService.getTugasUserAll(userId);
+      List<DailyTaskItem> tugasListData = await _apiService.getTugasUserAll(
+        userId,
+      );
 
-      List<Map<String, dynamic>> tugasListDataFinal = tugasListData.map((task) => task.toJson()).toList();
+      List<Map<String, dynamic>> tugasListDataFinal = tugasListData
+          .map((task) => task.toJson())
+          .toList();
 
       // Menunggu 3 detik sebelum mematikan _isLoadingTasks
       await Future.delayed(const Duration(seconds: 3));
@@ -64,8 +73,6 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
       rethrow;
     }
   }
-
-
 
   @override
   void initState() {
@@ -89,7 +96,6 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
       final Map m when m['initialIndex'] is int => m['initialIndex'] as int,
       _ => 0,
     };
-
 
     return BlocProvider(
       create: (_) => TabTernakCubit(initialIndex),
@@ -120,7 +126,8 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
                         future: _ternakListFuture, // gunakan future dari state
                         builder: (context, snapshot) {
                           // Loading state
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return Center(child: TernakProBoxLoading());
                           }
 
@@ -146,22 +153,28 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
 
                           // No data handling
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return Center(child: Text('Tidak ada tugas saat ini.'));
+                            return Center(
+                              child: Text('Tidak ada tugas saat ini.'),
+                            );
                           }
 
                           // Once data is ready, pass it to the TugasList widget
-                          return DataTernakList(snapshot.data!, onRefresh: () {
-                            setState(() {
-                              _ternakListFuture = fetchTernakList();
-                            });
-                          },);
+                          return DataTernakList(
+                            snapshot.data!,
+                            onRefresh: () {
+                              setState(() {
+                                _ternakListFuture = fetchTernakList();
+                              });
+                            },
+                          );
                         },
                       ),
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: _tugasListFuture, // gunakan future dari state
                         builder: (context, snapshot) {
                           // Loading state
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return Center(child: TernakProBoxLoading());
                           }
 
@@ -187,11 +200,20 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
 
                           // No data handling
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return Center(child: Text('Tidak ada tugas saat ini.'));
+                            return Center(
+                              child: Text('Tidak ada tugas saat ini.'),
+                            );
                           }
 
                           // Once data is ready, pass it to the TugasList widget
-                          return TugasList(snapshot.data!);
+                          return TugasList(
+                            snapshot.data!,
+                            onRefresh: () {
+                              setState(() {
+                                _tugasListFuture = fetchTugasList();
+                              });
+                            },
+                          );
                         },
                       ),
                     ],
@@ -209,30 +231,131 @@ class ListDataTernakTugasPageState extends State<ListDataTernakTugasPage> with S
   }
 }
 
-
-class TugasList extends StatelessWidget {
+class TugasList extends StatefulWidget {
   final List<Map<String, dynamic>> tugasList;
+  final VoidCallback onRefresh;
 
-  const TugasList(this.tugasList, {super.key});
+  const TugasList(this.tugasList, {super.key, required this.onRefresh});
+
+  @override
+  State<TugasList> createState() => _TugasListState();
+}
+
+class _TugasListState extends State<TugasList> {
+  late List<Map<String, dynamic>> _tugasList;
+
+  @override
+  void initState() {
+    super.initState();
+    _tugasList = List<Map<String, dynamic>>.from(widget.tugasList);
+  }
+
+  @override
+  void didUpdateWidget(covariant TugasList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.tugasList, widget.tugasList)) {
+      _tugasList = List<Map<String, dynamic>>.from(widget.tugasList);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: tugasList.length,
+      itemCount: _tugasList.length,
       itemBuilder: (context, index) {
-        final task = tugasList[index];
-        return CustomTugasItem(
-          idTugas: task['id_tugas'] ?? 0,
-          title: task['nama_tugas'] ?? '',
-          statusId: task['status_tugas_id'] ?? 0,
-          status: task['status_tugas'] ?? '',
-          time: task['waktu_tugas'] ?? '',
-          tglTugas: task['tgl_tugas'] ?? '',
-          catatan: task['catatan'] ?? '',
-          iconPath: task['icon_path'] ?? 'assets/home_assets/icons/ic_default.png',
+        final task = _tugasList[index];
+        final idTugas = int.tryParse(task['id_tugas'].toString()) ?? 0;
+        return Dismissible(
+          key: ValueKey('tugas_$idTugas'),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.centerRight,
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (_) => _confirmDeleteTugas(context, idTugas),
+          onDismissed: (_) {
+            setState(() => _tugasList.removeAt(index));
+            widget.onRefresh();
+          },
+          child: CustomTugasItem(
+            idTugas: idTugas,
+            title: task['nama_tugas']?.toString() ?? '',
+            statusId: int.tryParse(task['status_tugas_id'].toString()) ?? 0,
+            status: task['status_tugas']?.toString() ?? 'Belum',
+            time: task['waktu_tugas']?.toString() ?? '',
+            tglTugas: task['tgl_tugas']?.toString() ?? '',
+            catatan: task['catatan']?.toString() ?? '',
+            iconPath:
+                task['icon_path']?.toString() ??
+                'assets/home_assets/icons/ic_default.png',
+            onDelete: () async {
+              final deleted = await _confirmDeleteTugas(context, idTugas);
+              if (deleted) {
+                setState(() {
+                  final currentIndex = _tugasList.indexWhere(
+                    (item) => item['id_tugas'] == idTugas,
+                  );
+                  if (currentIndex >= 0) _tugasList.removeAt(currentIndex);
+                });
+                widget.onRefresh();
+              }
+              return deleted;
+            },
+          ),
         );
       },
     );
+  }
+
+  Future<bool> _confirmDeleteTugas(BuildContext context, int idTugas) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus tugas'),
+        content: const Text('Anda yakin ingin menghapus tugas ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) return false;
+
+    try {
+      final credentials = await ApiService().loadCredentials();
+      final userId = credentials['user_id'];
+      if (userId is! String || userId.isEmpty) {
+        throw Exception('Sesi pengguna tidak ditemukan');
+      }
+
+      await ApiService().deleteTugas(userId, idTugas);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Tugas dihapus')));
+      }
+      return true;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menghapus tugas: $e')));
+      }
+      return false;
+    }
   }
 }
 
@@ -246,14 +369,15 @@ class BottomActionButton extends StatelessWidget {
       padding: const EdgeInsets.all(24.0),
       child: ClipRect(
         child: Opacity(
-          opacity: 1.0, // You can adjust this value for transparency, 1.0 = no transparency
+          opacity:
+              1.0, // You can adjust this value for transparency, 1.0 = no transparency
           child: OnboardingButton(
             previous: false,
             text: "Tambahkan",
             width: double.infinity,
             height: 30,
-            onClick: () => Navigator.pushNamed(context, "/tambah-data-$activePage"),
-            
+            onClick: () =>
+                Navigator.pushNamed(context, "/tambah-data-$activePage"),
           ),
         ),
       ),

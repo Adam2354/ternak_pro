@@ -43,6 +43,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const _cachedBannersKey = 'cached_active_banners';
   String greeting = 'Hai Selamat Pagi,';
   String formattedDate = '';
   Timer? _timer;
@@ -67,6 +68,16 @@ class _HomePageState extends State<HomePage> {
 
   String dataUser = '';
 
+  String get _dailyFeedStatus {
+    for (final task in _tasks) {
+      final title = task.title.toLowerCase();
+      if (title.contains('pakan') || title.contains('air')) {
+        return task.status.isEmpty ? 'Belum' : task.status;
+      }
+    }
+    return 'Belum';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -84,16 +95,57 @@ class _HomePageState extends State<HomePage> {
   void _checkAndShowBanner() async {
     final seen = await hasSeenBanner();
     if (!seen) {
+      final cachedBanners = await _loadCachedBanners();
+      if (!mounted) return;
+      if (cachedBanners.isNotEmpty) {
+        _showBannerDialogs(cachedBanners);
+      }
+
       try {
-        final banners = await _apiService.fetchBanners();
+        final banners = await _apiService.fetchBanners().timeout(
+          const Duration(seconds: 6),
+        );
         if (!mounted) return;
-        if (banners.isNotEmpty) {
+        await _saveCachedBanners(banners);
+        if (cachedBanners.isEmpty && banners.isNotEmpty) {
           _showBannerDialogs(banners);
         }
       } catch (e) {
-        debugPrint("Failed to load banners: $e");
+        debugPrint('Failed to load banners: $e');
       }
     }
+  }
+
+  Future<List<BannerItem>> _loadCachedBanners() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawBanners = prefs.getStringList(_cachedBannersKey) ?? const [];
+    final banners = <BannerItem>[];
+
+    for (final rawBanner in rawBanners) {
+      try {
+        final decoded = jsonDecode(rawBanner);
+        if (decoded is Map) {
+          final banner = BannerItem.fromJson(
+            Map<String, dynamic>.from(decoded),
+          );
+          if (banner.bannerUrl.isNotEmpty) {
+            banners.add(banner);
+          }
+        }
+      } catch (_) {
+        // Abaikan satu entri cache yang rusak dan tetap gunakan entri lainnya.
+      }
+    }
+
+    return banners;
+  }
+
+  Future<void> _saveCachedBanners(List<BannerItem> banners) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _cachedBannersKey,
+      banners.map((banner) => jsonEncode(banner.toJson())).toList(),
+    );
   }
 
   void _showBannerDialogs(List<BannerItem> banners) {
@@ -123,30 +175,20 @@ class _HomePageState extends State<HomePage> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(18),
                   child: Image.network(
-                    banner.bannerUrl,
+                    normalizeAssetUrl(banner.bannerUrl),
                     fit: BoxFit.cover,
                     width: double.infinity,
+                    webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) {
-                        return child; // Image is loaded
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      (loadingProgress.expectedTotalBytes ?? 1)
-                                : null,
-                          ),
-                        ); // Show a loading spinner while the image is loading
+                        return child;
                       }
+
+                      return const Center(child: CircularProgressIndicator());
                     },
                     errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.error,
-                          color: Colors.red,
-                          size: 50,
-                        ), // Show error icon if the image failed to load
+                      return const Center(
+                        child: Icon(Icons.error, color: Colors.red, size: 50),
                       );
                     },
                   ),
@@ -293,6 +335,57 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       print('Background tasks refresh failed: $e');
+    }
+  }
+
+  Future<bool> _deleteTaskFromHome(DailyTaskItem task) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus tugas'),
+        content: Text('Hapus tugas "${task.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return false;
+
+    try {
+      final credentials = await _apiService.loadCredentials();
+      final userId = credentials['user_id'];
+      if (userId is! String || userId.isEmpty) {
+        throw Exception('Sesi pengguna tidak ditemukan');
+      }
+
+      await _apiService.deleteTugas(userId, task.idTugas);
+      await CacheService.cacheTasksData(
+        _tasks
+            .where((item) => item.idTugas != task.idTugas)
+            .map((item) => item.toJson())
+            .toList(),
+      );
+      if (!mounted) return true;
+      setState(() {
+        _tasks.removeWhere((item) => item.idTugas == task.idTugas);
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Tugas dihapus')));
+      return true;
+    } catch (e) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus tugas: $e')));
+      return false;
     }
   }
 
@@ -855,7 +948,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               _buildHeaderSection(context, greeting, formattedDate, dataUser),
-              _buildStatsCard(context),
+              _buildStatsCard(context, _dailyFeedStatus),
               _buildFeaturedServices(context),
               _buildDailyTasks(context),
               _buildDailyTips(context),
@@ -893,6 +986,7 @@ class _HomePageState extends State<HomePage> {
       context,
       task2,
       _isLoadingTasks,
+      onDelete: _deleteTaskFromHome,
     ); // Use the dynamic _tasks list
   }
 
@@ -1156,7 +1250,7 @@ Future<int> _getTernakUserCount() async {
   }
 }
 
-Widget _buildStatsCard(BuildContext context) {
+Widget _buildStatsCard(BuildContext context, String dailyFeedStatus) {
   return LayoutBuilder(
     builder: (context, constraints) {
       double maxWidth = constraints.maxWidth;
@@ -1286,10 +1380,12 @@ Widget _buildStatsCard(BuildContext context) {
                             ),
                             SizedBox(width: 10),
                             Text(
-                              "-",
+                              dailyFeedStatus,
                               style: AppTextStyle.extraBold.copyWith(
-                                fontSize: fontSizeLarge,
-                                color: AppColors.primaryRed,
+                                fontSize: fontSizeMedium,
+                                color: dailyFeedStatus == 'Sudah'
+                                    ? AppColors.green01
+                                    : AppColors.primaryRed,
                               ),
                             ),
                           ],

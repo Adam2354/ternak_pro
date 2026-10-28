@@ -8,7 +8,7 @@ import '../models/TernakRecommendationResponse.dart';
 
 class TernakRecommendationService {
   // static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
-  static const String _baseUrl = 'http://127.0.0.1:8000/api/v1';
+  static const String _baseUrl = 'https://hawariyyun.my.id/api/v1';
   static const Duration _timeout = Duration(seconds: 30);
 
   // ====== Helpers ======

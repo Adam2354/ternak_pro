@@ -15,20 +15,32 @@ class DailyTaskItem {
     required this.statusId,
     required this.catatan,
     required this.time,
-    required this.tglTugas, 
+    required this.tglTugas,
     required this.iconPath,
   });
 
   // Fungsi untuk membuat objek DailyTaskItem dari JSON
   factory DailyTaskItem.fromJson(Map<String, dynamic> json) {
+    final rawStatus =
+        json['status_tugas'] ?? json['status'] ?? json['status_tugas_name'];
+    final parsedStatus = rawStatus is Map
+        ? (rawStatus['nama'] ?? rawStatus['name'] ?? '').toString()
+        : rawStatus?.toString() ?? '';
+    final status = switch (parsedStatus.toLowerCase()) {
+      'sudah' || 'selesai' || 'completed' => 'Sudah',
+      'tertunda' || 'pending' => 'Tertunda',
+      'belum' || 'belum selesai' || 'incomplete' => 'Belum',
+      _ => parsedStatus,
+    };
+
     return DailyTaskItem(
-      idTugas: json['id_tugas'] ?? 0,
-      title: json['nama_tugas'] ?? 'No Title',
-      statusId: json['status_tugas_id'] ?? 0,
-      status: json['status_tugas'] ?? 'No Status',
-      time: json['waktu_tugas'] ?? 'No Time',
-      tglTugas: json['tgl_tugas'] ?? '2025-01-01',
-      catatan: json['catatan'] ?? '',
+      idTugas: int.tryParse(json['id_tugas'].toString()) ?? 0,
+      title: json['nama_tugas']?.toString() ?? 'No Title',
+      statusId: int.tryParse(json['status_tugas_id'].toString()) ?? 0,
+      status: status.isEmpty ? 'Belum' : status,
+      time: json['waktu_tugas']?.toString() ?? 'No Time',
+      tglTugas: json['tgl_tugas']?.toString() ?? '2025-01-01',
+      catatan: json['catatan']?.toString() ?? '',
       iconPath: json['icon_path'] ?? 'assets/home_assets/icons/ic_default.png',
     );
   }

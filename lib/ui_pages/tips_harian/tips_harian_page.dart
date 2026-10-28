@@ -3,6 +3,7 @@ import 'package:ternak_pro/shared/custom_loading.dart';
 import 'package:ternak_pro/shared/theme.dart';
 import '../../models/TipsItem.dart';
 import '../../shared/widgets/tips_harian/custom_app_bar.dart';
+import '../../shared/widgets/custom_image_view.dart';
 import 'package:ternak_pro/services/api_service.dart'; // Sesuaikan path ke ApiService
 
 class TipsHarianPage extends StatefulWidget {
@@ -139,7 +140,10 @@ class TipsOnlyItem extends StatelessWidget {
         padding: const EdgeInsets.only(left: 24, top: 13, bottom: 30),
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: AppColors.black10, style: BorderStyle.solid),
+            bottom: BorderSide(
+              color: AppColors.black10,
+              style: BorderStyle.solid,
+            ),
           ),
         ),
         child: Row(
@@ -148,12 +152,14 @@ class TipsOnlyItem extends StatelessWidget {
             Container(
               width: 90,
               height: 90,
-              decoration: BoxDecoration(
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl), // Ubah ke NetworkImage
+                child: CustomImageView(
+                  imagePath: imageUrl,
+                  width: 90,
+                  height: 90,
                   fit: BoxFit.cover,
-                  onError: (exception, stackTrace) => const AssetImage('assets/placeholder_image.png'),
+                  placeHolder: 'assets/home_assets/images/img_not_found.png',
                 ),
               ),
             ),
@@ -164,7 +170,10 @@ class TipsOnlyItem extends StatelessWidget {
                 children: [
                   const SizedBox(height: 3),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.blue0120,
                       borderRadius: BorderRadius.circular(4),

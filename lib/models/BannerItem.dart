@@ -5,6 +5,13 @@ class BannerItem {
   BannerItem({required this.title, required this.bannerUrl});
 
   factory BannerItem.fromJson(Map<String, dynamic> json) {
-    return BannerItem(title: json['title'], bannerUrl: json['bannerUrl']);
+    return BannerItem(
+      title: json['title']?.toString() ?? '',
+      bannerUrl: json['bannerUrl']?.toString() ?? '',
+    );
+  }
+
+  Map<String, String> toJson() {
+    return {'title': title, 'bannerUrl': bannerUrl};
   }
 }

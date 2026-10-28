@@ -20,7 +20,8 @@ import '../shared/theme.dart';
 
 class ApiService {
   // Base URL untuk API
-  static const String _baseUrl = 'http://127.0.0.1:8000/api/v1';
+  // static const String _baseUrl = 'http://127.0.0.1:8000/api/v1';
+  static const String _baseUrl = 'https://hawariyyun.my.id/api/v1';
   // static const String _baseUrl = 'https://ternakpro-id.stackstaging.com/backend/api/v1';
   // static const String _baseUrl = 'https://api.ternakpro.id/api/v1';
   static const String _aiBaseUrl = 'https://ternakpro-ai.onrender.com';
@@ -134,7 +135,7 @@ class ApiService {
     final defaultHeaders = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (token is String && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
 
     headers = headers != null
@@ -873,10 +874,9 @@ class ApiService {
         }
       }
 
-      if (response.statusCode == 201) {
-        return true; // sukses create
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
       }
-
       // Tangani error umum & validasi biar pesannya informatif
       if (response.statusCode == 422) {
         final body = jsonDecode(response.body);
@@ -940,7 +940,8 @@ class ApiService {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
-              if (token != null) 'Authorization': 'Bearer $token',
+              if (token is String && token.isNotEmpty)
+                'Authorization': 'Bearer $token',
             },
           )
           .timeout(const Duration(seconds: 15));
@@ -1155,10 +1156,9 @@ class ApiService {
         }
       }
 
-      if (response.statusCode == 201) {
-        // Panggil _clearPengulanganTemps setelah berhasil
+      if (response.statusCode == 200 || response.statusCode == 201) {
         await _clearPengulanganTemps();
-        return true; // Berhasil membuat tugas
+        return true;
       }
 
       // Tangani error umum & validasi
@@ -1258,6 +1258,32 @@ class ApiService {
         ),
       );
       throw Exception('Error memperbarui data tugas: $e');
+    }
+  }
+
+  Future<void> deleteTugas(String userId, int idTugas) async {
+    try {
+      final credentials = await loadCredentials();
+      final token = credentials['token'];
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/tugas/$userId/$idTugas'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception(
+          'Gagal menghapus tugas: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Error menghapus tugas: $e');
     }
   }
 
@@ -1470,6 +1496,13 @@ class ApiService {
     required int waktu,
     required String pengalaman,
   }) async {
+    final startedAt = DateTime.now();
+    final stopwatch = Stopwatch()..start();
+    print(
+      '[VIKOR] START ${startedAt.toIso8601String()} '
+      'modal=$modal lahan=$lahan waktu=$waktu pengalaman=$pengalaman',
+    );
+
     try {
       // Basic client-side validation to avoid sending invalid payloads
       if (modal <= 0) {
@@ -1503,7 +1536,8 @@ class ApiService {
       final headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        if (token is String && token.isNotEmpty)
+          'Authorization': 'Bearer $token',
       };
       final payload = {
         'modal': modal,
@@ -1520,15 +1554,19 @@ class ApiService {
       try {
         response = await http
             .post(uri, headers: headers, body: jsonEncode(payload))
-            .timeout(const Duration(seconds: 60));
+            .timeout(const Duration(seconds: 45));
       } on Exception catch (e) {
         if (e.toString().contains('TimeoutException')) {
-          throw Exception('Request ke AI timed out after 60 detik: $e');
+          throw Exception('Request ke AI timed out after 45 detik: $e');
         }
         rethrow;
       }
 
       final responseBody = response.body.trim();
+      print(
+        '[VIKOR] RESPONSE ${DateTime.now().toIso8601String()} '
+        'status=${response.statusCode} elapsedMs=${stopwatch.elapsedMilliseconds}',
+      );
       // Debug: log HTTP status and body for AI recommendation response
       print('AI RESP status: ${response.statusCode}');
       print('AI RESP body: $responseBody');
@@ -1670,7 +1708,7 @@ class ApiService {
           };
         }).toList();
 
-        return {
+        final result = {
           'success': jsonMap['success'] ?? true,
           'message': jsonMap['message'] ?? 'Recommendation success',
           'data': {
@@ -1678,6 +1716,12 @@ class ApiService {
             'recommendations': recommendations,
           },
         };
+        print(
+          '[VIKOR] SUCCESS ${DateTime.now().toIso8601String()} '
+          'elapsedMs=${stopwatch.elapsedMilliseconds} '
+          'recommendations=${recommendations.length}',
+        );
+        return result;
       }
 
       final message =
@@ -1686,7 +1730,13 @@ class ApiService {
           'Gagal mendapatkan rekomendasi ternak';
       throw Exception(message);
     } catch (e) {
+      print(
+        '[VIKOR] ERROR ${DateTime.now().toIso8601String()} '
+        'elapsedMs=${stopwatch.elapsedMilliseconds} error=$e',
+      );
       throw Exception('Gagal mendapatkan rekomendasi ternak: $e');
+    } finally {
+      stopwatch.stop();
     }
   }
 }

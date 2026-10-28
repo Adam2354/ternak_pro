@@ -5,6 +5,7 @@ import 'package:ternak_pro/shared/widgets/data_ternak/custom_drop_down_kelamin.d
 
 import '../../custom_loading.dart';
 import '../../theme.dart';
+import '../custom_image_view.dart';
 import '../onboarding_buttom.dart';
 import 'custom_drop_down_sehat.dart';
 import 'custom_weight_field.dart';
@@ -37,6 +38,55 @@ class _DataTernakListState extends State<DataTernakList> {
     widget.onRefresh(); // Memaksa FutureBuilder untuk memuat ulang data
   }
 
+  Future<bool> _confirmDeleteTernak(int idTernak) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus ternak'),
+        content: const Text('Anda yakin ingin menghapus ternak ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) return false;
+
+    try {
+      final credentials = await ApiService().loadCredentials();
+      final userId = credentials['user_id'];
+      if (userId is! String || userId.isEmpty) {
+        throw Exception('Sesi pengguna tidak ditemukan');
+      }
+
+      await ApiService().deleteTernak(userId, idTernak);
+      return true;
+    } catch (e) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+      return false;
+    }
+  }
+
+  void _removeTernak(int index) {
+    setState(() {
+      _ternakList.removeAt(index);
+    });
+    widget.onRefresh();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Ternak dihapus')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -61,48 +111,10 @@ class _DataTernakListState extends State<DataTernakList> {
             child: const Icon(Icons.delete, color: Colors.white),
           ),
           confirmDismiss: (direction) async {
-            // Tanyakan konfirmasi ke user
-            final result = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Hapus ternak'),
-                content: const Text('Anda yakin ingin menghapus ternak ini?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: const Text('Batal'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: const Text('Hapus'),
-                  ),
-                ],
-              ),
-            );
-
-            if (result != true) return false;
-
-            // Panggil API untuk hapus
-            try {
-              final creds = await ApiService().loadCredentials();
-              final userId = creds['user_id'];
-              await ApiService().deleteTernak(userId, idTernak);
-              return true;
-            } catch (e) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
-              return false;
-            }
+            return _confirmDeleteTernak(idTernak);
           },
           onDismissed: (direction) {
-            setState(() {
-              _ternakList.removeAt(index);
-            });
-            widget.onRefresh();
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Ternak dihapus')));
+            _removeTernak(index);
           },
           child: CustomTernakItem(
             idTernak: idTernak,
@@ -112,6 +124,11 @@ class _DataTernakListState extends State<DataTernakList> {
             status: item['kondisi_ternak'],
             iconPath: item['icon_path'],
             onUpdate: (updatedData) => _updateTernakItem(index, updatedData),
+            onDelete: () async {
+              if (await _confirmDeleteTernak(idTernak) && mounted) {
+                _removeTernak(index);
+              }
+            },
           ),
         );
       },
@@ -127,6 +144,7 @@ class CustomTernakItem extends StatelessWidget {
   final String status;
   final String iconPath;
   final Function(Map<String, dynamic>) onUpdate;
+  final Future<void> Function() onDelete;
 
   const CustomTernakItem({
     super.key,
@@ -137,6 +155,7 @@ class CustomTernakItem extends StatelessWidget {
     required this.iconPath,
     required this.status,
     required this.onUpdate,
+    required this.onDelete,
   });
 
   @override
@@ -168,10 +187,11 @@ class CustomTernakItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Ikon sapi (fixed width)
-            Image.asset(
-              iconPath,
+            CustomImageView(
+              imagePath: iconPath,
               width: 50,
               height: 50,
+              placeHolder: 'assets/home_assets/images/img_not_found.png',
             ),
             const SizedBox(width: 8),
             // Teks ID dengan scroll dan tooltip
@@ -244,10 +264,31 @@ class CustomTernakItem extends StatelessWidget {
                   height: 14,
                 ),
                 const SizedBox(width: 10),
-                Image.asset(
-                  'assets/home_assets/icons/ic_more.png',
-                  width: 18,
-                  height: 18,
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Menu ternak',
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      onDelete();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Hapus'),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Image.asset(
+                    'assets/home_assets/icons/ic_more.png',
+                    width: 18,
+                    height: 18,
+                  ),
                 ),
               ],
             ),
@@ -366,9 +407,10 @@ Future<Map<String, dynamic>?> showDataTernakDialog(
                 ),
                 // Cow image section
                 Center(
-                  child: Image.asset(
-                    iconPath,
+                  child: CustomImageView(
+                    imagePath: iconPath,
                     height: 100,
+                    placeHolder: 'assets/home_assets/images/img_not_found.png',
                   ),
                 ),
                 // Ternak ID, Gender, and Weight
