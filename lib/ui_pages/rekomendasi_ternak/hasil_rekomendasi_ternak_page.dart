@@ -228,7 +228,7 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
 
   Widget _buildCostBreakdownSection(
     Map<String, dynamic> item,
-    bool modalCukup,
+    bool modalCukupSatuEkor,
   ) {
     final breakdown = item['breakdown_biaya'];
     final breakdownMap = breakdown is Map
@@ -337,9 +337,9 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              modalCukup
-                  ? 'Modal minimum tercapai, tetapi belum cukup untuk memulai minimal 1 ekor setelah alokasi 85% modal'
-                  : 'Belum memenuhi modal minimum untuk memulai ternak ini',
+              modalCukupSatuEkor
+                  ? 'Modal belum cukup untuk memulai 1 ekor setelah alokasi cadangan operasional 85%'
+                  : 'Modal belum cukup untuk memulai 1 ekor ternak ini',
               style: AppTextStyle.semiBold.copyWith(fontSize: 14),
             ),
             const SizedBox(height: 8),
@@ -612,16 +612,28 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
 
     final String kecocokan = kecocokanPersen.clamp(0, 100).toStringAsFixed(0);
 
-    // =====================================
-    // STATUS KELAYAKAN
-    // =====================================
-
-    final String statusKelayakan = _resolveValue(item, [
-      'status_kelayakan',
-    ], feasible ? 'Kurang Direkomendasikan' : 'Belum Layak Dimulai').toString();
-
     final double modalMinimum = _parseNumber(item['modal_minimum']);
-    final bool modalCukup = userModal >= modalMinimum;
+    final double biayaSatuEkor = _parseNumber(
+      _resolveValue(item, [
+        'biaya_per_ekor_estimasi',
+        'estimasi_biaya_per_ekor',
+        'biaya_total_per_ekor',
+        'biaya_per_ekor',
+      ]),
+    );
+    final bool modalCukupSatuEkor =
+        item['modal_cukup_1_ekor'] == true ||
+        (biayaSatuEkor > 0 && userModal >= biayaSatuEkor);
+    final bool modalCukupMinimumUsaha =
+        item['modal_cukup_minimum_usaha'] == true ||
+        (modalMinimum > 0 && userModal >= modalMinimum);
+    final String statusKelayakan = modalCukupSatuEkor && !modalCukupMinimumUsaha
+        ? 'Bisa mulai 1 ekor; belum mencapai skala minimum usaha'
+        : _resolveValue(
+            item,
+            ['status_kelayakan'],
+            feasible ? 'Kurang Direkomendasikan' : 'Belum Layak Dimulai',
+          ).toString();
 
     return Container(
       decoration: BoxDecoration(
@@ -814,7 +826,7 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
 
                 const SizedBox(height: 18),
 
-                _buildCostBreakdownSection(item, modalCukup),
+                _buildCostBreakdownSection(item, modalCukupSatuEkor),
 
                 const SizedBox(height: 18),
 
@@ -909,12 +921,12 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: modalCukup
+                    color: modalCukupSatuEkor
                         ? const Color(0xFFEAFBF1)
                         : const Color(0xFFFFF1F1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: modalCukup
+                      color: modalCukupSatuEkor
                           ? const Color(0xFFB7E4C7)
                           : const Color(0xFFF3B4B4),
                     ),
@@ -923,28 +935,28 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        modalCukup
+                        modalCukupSatuEkor
                             ? 'Modal tersedia mencukupi'
-                            : 'Modal tersedia belum mencukupi',
+                            : 'Modal tersedia belum mencukupi untuk 1 ekor',
                         style: AppTextStyle.extraBold.copyWith(
                           fontSize: 14,
-                          color: modalCukup
+                          color: modalCukupSatuEkor
                               ? const Color(0xFF15803D)
                               : const Color(0xFFB91C1C),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Modal Anda: ${_formatCurrency(userModal)} • Minimal ternak ini: ${_formatCurrency(modalMinimum)}',
+                        'Modal Anda: ${_formatCurrency(userModal)} • Biaya 1 ekor: ${_formatCurrency(biayaSatuEkor)}',
                         style: AppTextStyle.regular.copyWith(
                           fontSize: 13,
                           height: 1.4,
-                          color: modalCukup
+                          color: modalCukupSatuEkor
                               ? const Color(0xFF166534)
                               : const Color(0xFF991B1B),
                         ),
                       ),
-                      if (!modalCukup) ...[
+                      if (!modalCukupSatuEkor) ...[
                         const SizedBox(height: 6),
                         Text(
                           'Hasil ini tetap tampil karena sistem VIKOR memberi bobot kecocokan keseluruhan, bukan filter modal keras.',
@@ -954,10 +966,10 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
                             color: const Color(0xFFB45309),
                           ),
                         ),
-                      ] else if (estimasiEkor == 0) ...[
+                      ] else if (!modalCukupMinimumUsaha) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'Modal cukup untuk modal minimum, tetapi belum cukup untuk memulai 1 ekor setelah cadangan operasional 85%.',
+                          'Modal cukup untuk 1 ekor, tetapi belum mencapai modal minimum usaha ${_formatCurrency(modalMinimum)}.',
                           style: AppTextStyle.semiBold.copyWith(
                             fontSize: 12,
                             height: 1.4,
