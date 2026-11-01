@@ -1715,7 +1715,8 @@ class ApiService {
               .timeout(const Duration(seconds: 45));
           lastTransientError = null;
 
-          final isTransientStatus = response.statusCode == 502 ||
+          final isTransientStatus =
+              response.statusCode == 502 ||
               response.statusCode == 503 ||
               response.statusCode == 504;
           if (!isTransientStatus || attempt == 2) {
@@ -1849,7 +1850,10 @@ class ApiService {
             'pengalaman_minimum': map['pengalaman_minimum'] ?? 0,
             'kebutuhan_pakan': map['kebutuhan_pakan'] ?? const [],
             'tips': map['tips'] ?? const [],
-            'biaya_total_per_ekor': map['biaya_total_per_ekor'] ?? modalMinimum,
+            'biaya_per_ekor': map['biaya_per_ekor'] ?? 0,
+            'biaya_per_ekor_estimasi': map['biaya_per_ekor_estimasi'] ?? 0,
+            'estimasi_biaya_per_ekor': map['estimasi_biaya_per_ekor'] ?? 0,
+            'biaya_total_per_ekor': map['biaya_total_per_ekor'] ?? 0,
             'estimasi_ekor': map['estimasi_ekor'] ?? 0,
             'sisa_modal': map['sisa_modal'] ?? 0,
             'breakdown_biaya': (() {

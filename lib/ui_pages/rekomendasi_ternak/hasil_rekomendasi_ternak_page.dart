@@ -218,6 +218,40 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
     return fallback;
   }
 
+  double _biayaPerEkor(Map<String, dynamic> item) {
+    final explicitCost = _resolveValue(item, [
+      'biaya_per_ekor_estimasi',
+      'estimasi_biaya_per_ekor',
+      'biaya_total_per_ekor',
+      'biaya_per_ekor',
+    ], 0);
+    final parsedExplicitCost = _parseNumber(explicitCost);
+    if (parsedExplicitCost > 0) {
+      return parsedExplicitCost;
+    }
+
+    final breakdown = item['breakdown_biaya'];
+    if (breakdown is Map) {
+      var totalBreakdown = 0.0;
+      for (final value in breakdown.values) {
+        totalBreakdown += _parseNumber(value);
+      }
+
+      if (totalBreakdown > 0) {
+        final estimatedCount =
+            int.tryParse(item['estimasi_ekor']?.toString() ?? '') ?? 0;
+        if (estimatedCount > 1) {
+          return totalBreakdown / estimatedCount;
+        }
+        return totalBreakdown;
+      }
+    }
+
+    return _parseNumber(
+      _resolveValue(item, ['biaya_awal', 'modal_awal', 'biaya'], 0),
+    );
+  }
+
   String _formatEstimateCount(dynamic value) {
     final number = int.tryParse(value.toString()) ?? 0;
     if (number <= 0) {
@@ -235,15 +269,7 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
         ? Map<String, dynamic>.from(breakdown)
         : <String, dynamic>{};
 
-    final biayaTotalPerEkor = _resolveValue(item, [
-      'biaya_per_ekor_estimasi',
-      'estimasi_biaya_per_ekor',
-      'biaya_total_per_ekor',
-      'modal_minimum',
-      'biaya_awal',
-      'modal_awal',
-      'biaya',
-    ]);
+    final biayaTotalPerEkor = _biayaPerEkor(item);
 
     final estimasiEkor = item['estimasi_ekor'] ?? 0;
     final dynamic sisaModalRaw = item['sisa_modal'];
@@ -258,8 +284,8 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
     // If API didn't provide sisa_modal or it's zero, compute a fallback
     // using user provided modal minus estimated total cost.
     // Prefer sum(breakdown_biaya) as biaya per ekor when available.
-    double biayaPerEkor = 0.0;
-    if (breakdownMap.isNotEmpty) {
+    double biayaPerEkor = biayaTotalPerEkor;
+    if (biayaPerEkor == 0.0 && breakdownMap.isNotEmpty) {
       double sum = 0.0;
       breakdownMap.forEach((_, v) {
         if (v is num) {
@@ -296,12 +322,6 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
       }
 
       biayaPerEkor = chooseCandidate();
-    }
-
-    if (biayaPerEkor == 0.0) {
-      biayaPerEkor = (biayaTotalPerEkor is num)
-          ? (biayaTotalPerEkor as num).toDouble()
-          : double.tryParse(biayaTotalPerEkor.toString()) ?? 0.0;
     }
 
     // Debug prints to help tune heuristics
@@ -613,14 +633,7 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
     final String kecocokan = kecocokanPersen.clamp(0, 100).toStringAsFixed(0);
 
     final double modalMinimum = _parseNumber(item['modal_minimum']);
-    final double biayaSatuEkor = _parseNumber(
-      _resolveValue(item, [
-        'biaya_per_ekor_estimasi',
-        'estimasi_biaya_per_ekor',
-        'biaya_total_per_ekor',
-        'biaya_per_ekor',
-      ]),
-    );
+    final double biayaSatuEkor = _biayaPerEkor(item);
     final bool modalCukupSatuEkor =
         item['modal_cukup_1_ekor'] == true ||
         (biayaSatuEkor > 0 && userModal >= biayaSatuEkor);
