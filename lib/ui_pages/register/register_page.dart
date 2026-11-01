@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ternak_pro/shared/theme.dart';
 import '../../shared/custom_loading.dart';
 import '../../shared/widgets/register_app_textfield.dart';
 import '../../services/api_service.dart';
+import '../../services/google_sign_in_config.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -136,6 +140,7 @@ class _RegisterPageState extends State<RegisterPage>
         passwordError = password.isEmpty;
         nameError = name.isEmpty;
       }
+
       if (!emailRegex.hasMatch(email)) {
         emailError = true;
         isLoading = false;
@@ -188,6 +193,83 @@ class _RegisterPageState extends State<RegisterPage>
       if (mounted) {
         isLoading = false;
         showError(e.toString().replaceFirst('Exception: ', ''));
+      }
+    }
+  }
+
+  Future<void> registerWithGoogle() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      UserCredential userCredential;
+
+      if (kIsWeb) {
+        userCredential = await FirebaseAuth.instance.signInWithPopup(
+          GoogleAuthProvider(),
+        );
+      } else {
+        await GoogleSignIn.instance.initialize(
+          serverClientId: googleServerClientId,
+        );
+        final googleUser = await GoogleSignIn.instance.authenticate();
+        final googleAuth = googleUser.authentication;
+        final googleIdToken = googleAuth.idToken;
+        if (googleIdToken == null || googleIdToken.isEmpty) {
+          throw Exception(
+            'Token Google tidak tersedia. Periksa konfigurasi OAuth Android.',
+          );
+        }
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleIdToken,
+        );
+        userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
+      }
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('Akun Google tidak berhasil diverifikasi.');
+      }
+
+      final idToken = await firebaseUser.getIdToken(true);
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Firebase ID token tidak tersedia.');
+      }
+
+      final user = await _apiService.loginWithGoogle(idToken: idToken);
+
+      if (!mounted) return;
+      showSuccess(
+        'Selamat datang, ${user.name}! Akun Google berhasil digunakan.',
+      );
+      await Future<void>.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        showError('Daftar dengan Google gagal: ${e.message ?? e.code}');
+      }
+    } on GoogleSignInException catch (e) {
+      if (mounted) {
+        showError(
+          'Daftar dengan Google gagal (${e.code.name}): '
+          '${e.description ?? 'Konfigurasi Google di Android belum lengkap.'}',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showError(e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
@@ -531,7 +613,7 @@ class _RegisterPageState extends State<RegisterPage>
                             height: 24,
                           ),
                           label: Text(
-                            "Masuk Dengan Google",
+                            "Daftar Dengan Google",
                             style: AppTextStyle.semiBold.copyWith(
                               color: AppColors.black100,
                               fontSize: 16,
@@ -545,10 +627,7 @@ class _RegisterPageState extends State<RegisterPage>
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: () {
-                            // Tambahkan logika untuk login dengan Google jika diperlukan
-                            _showFeatureUserNotAvailableDialog(context);
-                          },
+                          onPressed: isLoading ? null : registerWithGoogle,
                         ),
                       ),
                       const SizedBox(height: 18),
@@ -685,40 +764,4 @@ class _RegisterPageState extends State<RegisterPage>
       ),
     );
   }
-}
-
-void _showFeatureUserNotAvailableDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        title: const Text(
-          'Informasi',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        content: const Text(
-          'Mohon maaf saat ini Registrasi dengan Google belum dapat digunakan, silakan google dengan email dan password.',
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Tutup dialog
-            },
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                color: Colors.blue,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
 }

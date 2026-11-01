@@ -70,7 +70,21 @@ class TernakRecommendationService {
         .post(uri, headers: await _headers(), body: jsonEncode(payload))
         .timeout(_timeout);
 
-    final bodyStr = res.body.isEmpty ? '{}' : res.body;
+    final contentType = res.headers['content-type']?.toLowerCase() ?? '';
+    final trimmedBody = res.body.trim();
+    if (contentType.contains('text/html') ||
+        trimmedBody.startsWith('<!DOCTYPE html') ||
+        trimmedBody.startsWith('<html')) {
+      throw TernakApiException(
+        message: res.statusCode == 401
+            ? 'Sesi login tidak valid. Silakan login kembali.'
+            : 'Server mengembalikan HTML, bukan respons API JSON.',
+        statusCode: res.statusCode,
+        body: res.body,
+      );
+    }
+
+    final bodyStr = trimmedBody.isEmpty ? '{}' : trimmedBody;
     final jsonMap = jsonDecode(bodyStr) as Map<String, dynamic>;
 
     // Laravel controller mengembalikan:

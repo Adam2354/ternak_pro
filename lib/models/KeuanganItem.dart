@@ -20,15 +20,37 @@ class KeuanganItem {
   });
 
   factory KeuanganItem.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value, String fieldName, {int fallback = 0}) {
+      if (value is num) return value.toInt();
+      final parsed = int.tryParse(value?.toString() ?? '');
+      if (parsed != null) return parsed;
+      if (fieldName == 'id_keuangan') {
+        throw FormatException('Field $fieldName tidak tersedia');
+      }
+      return fallback;
+    }
+
+    bool parseBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      return value?.toString().toLowerCase() == 'true' ||
+          value?.toString() == '1';
+    }
+
+    final rawDate = json['tgl_keuangan']?.toString();
+    if (rawDate == null || rawDate.isEmpty) {
+      throw const FormatException('Field tgl_keuangan tidak tersedia');
+    }
+
     return KeuanganItem(
-      idKeuangan: json['id_keuangan'] as int,
-      isPengeluaran: json['is_pengeluaran'] as bool,
-      nominalTotal: json['nominal_total'] as int,
-      dariTujuan: json['dari_tujuan'] as String,
-      asetId: json['aset_id'] as int,
-      namaAset: json['nama_aset'] as String,
-      tglKeuangan: DateTime.parse(json['tgl_keuangan'] as String),
-      catatan: json['catatan'] ?? '',
+      idKeuangan: parseInt(json['id_keuangan'] ?? json['id'], 'id_keuangan'),
+      isPengeluaran: parseBool(json['is_pengeluaran']),
+      nominalTotal: parseInt(json['nominal_total'], 'nominal_total'),
+      dariTujuan: json['dari_tujuan']?.toString() ?? '',
+      asetId: parseInt(json['aset_id'], 'aset_id'),
+      namaAset: json['nama_aset']?.toString() ?? '',
+      tglKeuangan: DateTime.parse(rawDate),
+      catatan: json['catatan']?.toString() ?? '',
     );
   }
 

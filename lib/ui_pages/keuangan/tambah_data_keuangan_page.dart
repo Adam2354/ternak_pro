@@ -18,7 +18,8 @@ class TambahDataKeuanganPage extends StatefulWidget {
   TambahDataKeuanganPageState createState() => TambahDataKeuanganPageState();
 }
 
-class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with SingleTickerProviderStateMixin {
+class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _tanggalController = TextEditingController();
   final TextEditingController _totalController = TextEditingController();
@@ -28,6 +29,7 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
   final ApiService _apiService = ApiService();
   String _userId = '';
   bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -61,39 +63,30 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
   }
 
   Future<void> _saveKeuangan(String activePage) async {
+    if (_isSaving) return;
+    _isSaving = true;
     setState(() {
       _isLoading = true;
     });
 
-    loadAssetId();
     try {
       // Validasi input
       if (_tanggalController.text.isEmpty ||
           _totalController.text.isEmpty ||
           _dariController.text.isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+        _isSaving = false;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Harap isi semua field wajib')),
         );
         return;
       }
 
-      final assetData = await _apiService.getAsset(_userId);
-
       // Jika _selectedAset kosong ('') maka set menjadi -1
-      if (_selectedAset.isEmpty) {
-        _selectedAset = '-1';  // Mengubah _selectedAset menjadi string '-1'
-      }
-
       // Coba untuk parsing _selectedAset menjadi int
-      final asetId = int.tryParse(_selectedAset) ?? -1;
-
-      print('Aset ID: $asetId'); // Output Aset ID
-      
-      // Menampilkan data terkait aset berdasarkan asetId
-      final selectedAsset = assetData.firstWhere(
-        (item) => item['id'] == asetId,
-        orElse: () => {'id': -1}, // Jika tidak ditemukan, kembalikan id -1
-      );
+      final asetId = int.tryParse(_selectedAset);
 
       // Konversi tanggal dari dd/MM/yyyy ke YYYY-MM-DD
       final inputFormat = DateFormat('dd/MM/yyyy');
@@ -105,60 +98,61 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
       final keuanganItem = KeuanganItem(
         idKeuangan: 0, // Akan diisi oleh server
         isPengeluaran: activePage == 'pengeluaran',
-        nominalTotal: int.parse(_totalController.text.replaceAll(RegExp(r'[^0-9]'), '')),
+        nominalTotal: int.parse(
+          _totalController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        ),
         dariTujuan: _dariController.text,
-        asetId: asetId,
+        asetId: asetId ?? 0,
         namaAset: _selectedAset.isNotEmpty ? _selectedAset : '',
         tglKeuangan: DateTime.parse(formattedTglKeuangan),
         catatan: _catatanController.text,
       );
 
       // Simpan ke API
-      final result = await _apiService.storeKeuangan(keuanganItem, _userId, context);
-      
+      await _apiService.storeKeuangan(
+        keuanganItem,
+        _userId,
+        context,
+      );
+
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Data keuangan berhasil disimpan')),
       );
-      Navigator.pop(context, true); // Kembali ke halaman sebelumnya dengan hasil true
+      Navigator.pop(
+        context,
+        true,
+      ); // Kembali ke halaman sebelumnya dengan hasil true
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+      _isSaving = false;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan data keuangan: $e')),
+        SnackBar(
+          content: Text(
+            _keuanganErrorMessage(e),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       );
     }
   }
 
-  // Ambil data aset dari API
-  Future<void> loadAssetId() async {
-    // Ambil data aset dari API
-    final assetData = await _apiService.getAsset(_userId);
-
-    // Jika _selectedAset kosong ('') maka set menjadi -1
-    if (_selectedAset.isEmpty) {
-      _selectedAset = '-1';  // Mengubah _selectedAset menjadi string '-1'
+  String _keuanganErrorMessage(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    if (message.isEmpty) return 'Gagal menyimpan data keuangan';
+    if (message.length > 180) {
+      return '${message.substring(0, 177)}...';
     }
-
-    // Coba untuk parsing _selectedAset menjadi int
-    final asetId = int.tryParse(_selectedAset) ?? -1;
-
-    print('Aset ID: $asetId'); // Output Aset ID
-    
-    // Menampilkan data terkait aset berdasarkan asetId
-    final selectedAsset = assetData.firstWhere(
-      (item) => item['id'] == asetId,
-      orElse: () => {'id': -1}, // Jika tidak ditemukan, kembalikan id -1
-    );
-
-    print('Selected Asset: ${selectedAsset['nama']}'); // Menampilkan nama aset terpilih
+    return message;
   }
 
-  
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -168,9 +162,7 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
     };
 
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: TernakProBoxLoading()),
-      );
+      return const Scaffold(body: Center(child: TernakProBoxLoading()));
     }
 
     return BlocProvider(
@@ -232,9 +224,9 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
                               selectedValue: _selectedAset,
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedAset = value; // Update selected asset
+                                  _selectedAset =
+                                      value; // Update selected asset
                                 });
-                                loadAssetId(); // Panggil fungsi untuk update ID setelah perubahan
                               },
                             ),
                             CustomInputKeuanganField(
@@ -278,7 +270,8 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
                               hintText: 'Pilih Aset',
                               options: _optionAsset,
                               selectedValue: _selectedAset,
-                              onChanged: (value) => setState(() => _selectedAset = value),
+                              onChanged: (value) =>
+                                  setState(() => _selectedAset = value),
                             ),
                             CustomInputKeuanganField(
                               label: 'Catatan (Opsional)',
@@ -296,7 +289,9 @@ class TambahDataKeuanganPageState extends State<TambahDataKeuanganPage> with Sin
             ),
             bottomNavigationBar: BottomActionButton(
               activePage: selectedIndex == 0 ? 'pendapatan' : 'pengeluaran',
-              onSave: () => _saveKeuangan(selectedIndex == 0 ? 'pendapatan' : 'pengeluaran'),
+              onSave: () => _saveKeuangan(
+                selectedIndex == 0 ? 'pendapatan' : 'pengeluaran',
+              ),
             ),
           );
         },
@@ -323,10 +318,12 @@ class CustomDropdownInputKeuangan extends StatefulWidget {
   });
 
   @override
-  State<CustomDropdownInputKeuangan> createState() => _CustomDropdownInputKeuanganState();
+  State<CustomDropdownInputKeuangan> createState() =>
+      _CustomDropdownInputKeuanganState();
 }
 
-class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuangan> {
+class _CustomDropdownInputKeuanganState
+    extends State<CustomDropdownInputKeuangan> {
   late String selectedValue;
 
   @override
@@ -337,25 +334,30 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
 
   String _getSelectedName(String selectedValue) {
     // Mengonversi selectedValue menjadi int
-    final int selectedId = int.tryParse(selectedValue) ?? -1; // Default ke -1 jika gagal
+    final int selectedId =
+        int.tryParse(selectedValue) ?? -1; // Default ke -1 jika gagal
 
     // Mencari nama berdasarkan selectedValue (id)
     final option = widget.options.firstWhere(
-      (option) => option['id'] == selectedId, // Membandingkan dengan id setelah di-convert
-      orElse: () => {'nama': ''}, // Jika tidak ditemukan, kembalikan nama kosong
+      (option) =>
+          option['id'] ==
+          selectedId, // Membandingkan dengan id setelah di-convert
+      orElse: () => {
+        'nama': '',
+      }, // Jika tidak ditemukan, kembalikan nama kosong
     );
 
     return option['nama'] ?? ''; // Mengembalikan nama jika ditemukan
   }
 
   String _getSelectedId(String selectedTitle) {
-      // Mencari id berdasarkan selectedTitle (nama)
-      final option = widget.options.firstWhere(
-        (option) => option['nama'] == selectedTitle,
-        orElse: () => {'id': -1}, // Jika tidak ditemukan, kembalikan id -1
-      );
+    // Mencari id berdasarkan selectedTitle (nama)
+    final option = widget.options.firstWhere(
+      (option) => option['nama'] == selectedTitle,
+      orElse: () => {'id': -1}, // Jika tidak ditemukan, kembalikan id -1
+    );
 
-      return option['id'].toString(); // Mengembalikan id jika ditemukan
+    return option['id'].toString(); // Mengembalikan id jika ditemukan
   }
 
   @override
@@ -365,7 +367,10 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
       children: [
         Text(
           widget.label,
-          style: AppTextStyle.semiBold.copyWith(fontSize: 14, color: AppColors.black100),
+          style: AppTextStyle.semiBold.copyWith(
+            fontSize: 14,
+            color: AppColors.black100,
+          ),
         ),
         const SizedBox(height: 3),
         GestureDetector(
@@ -380,10 +385,14 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.selectedValue.isEmpty ? widget.hintText : _getSelectedName(widget.selectedValue),
+                  widget.selectedValue.isEmpty
+                      ? widget.hintText
+                      : _getSelectedName(widget.selectedValue),
                   style: AppTextStyle.medium.copyWith(
                     fontSize: 14,
-                    color: widget.selectedValue.isEmpty ? AppColors.black01 : AppColors.black100,
+                    color: widget.selectedValue.isEmpty
+                        ? AppColors.black01
+                        : AppColors.black100,
                   ),
                 ),
                 Image.asset(
@@ -409,19 +418,25 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 10,
+          ),
           content: SingleChildScrollView(
             child: ListBody(
               children: widget.options.map((option) {
                 return RadioListTile<String>(
                   title: Text(
                     option['nama'].toString(),
-                    style: AppTextStyle.medium.copyWith(fontSize: 16, color: AppColors.black100),
+                    style: AppTextStyle.medium.copyWith(
+                      fontSize: 16,
+                      color: AppColors.black100,
+                    ),
                   ),
                   value: option['id'].toString(),
                   groupValue: widget.selectedValue,
                   onChanged: (String? value) {
-                   if (value != null) {
+                    if (value != null) {
                       setState(() {
                         selectedValue = value;
                       });
@@ -464,7 +479,10 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
           ),
           title: Text(
             'Tambah Aset Baru',
-            style: AppTextStyle.semiBold.copyWith(fontSize: 18, color: AppColors.black100),
+            style: AppTextStyle.semiBold.copyWith(
+              fontSize: 18,
+              color: AppColors.black100,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -502,7 +520,10 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
                     // Panggil API Service untuk menyimpan tujuan ternak
                     final credentials = await ApiService().loadCredentials();
                     final userId = credentials['user_id'];
-                    final newTujuanId = await ApiService.storeAsset(userId, nama);
+                    final newTujuanId = await ApiService.storeAsset(
+                      userId,
+                      nama,
+                    );
 
                     // Perbarui selectedValue dengan ID baru
                     setState(() {
@@ -513,7 +534,10 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
                     Navigator.of(context).pop();
 
                     // Tutup dialog opsi
-                    Navigator.pushReplacementNamed(context, '/tambah-data-keuangan');
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/tambah-data-keuangan',
+                    );
                   } catch (e) {
                     // Tampilkan pesan error jika gagal
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -540,7 +564,9 @@ class _CustomDropdownInputKeuanganState extends State<CustomDropdownInputKeuanga
               ),
               child: Text(
                 'Simpan',
-                style: AppTextStyle.medium.copyWith(color: AppColors.primaryWhite),
+                style: AppTextStyle.medium.copyWith(
+                  color: AppColors.primaryWhite,
+                ),
               ),
             ),
           ],
@@ -592,7 +618,10 @@ class CustomInputKeuanganField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyle.semiBold.copyWith(fontSize: 14, color: AppColors.black100),
+          style: AppTextStyle.semiBold.copyWith(
+            fontSize: 14,
+            color: AppColors.black100,
+          ),
         ),
         const SizedBox(height: 3),
         TextField(
@@ -602,12 +631,18 @@ class CustomInputKeuanganField extends StatelessWidget {
           readOnly: isCalendar,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: AppTextStyle.medium.copyWith(fontSize: 14, color: AppColors.black01),
+            hintStyle: AppTextStyle.medium.copyWith(
+              fontSize: 14,
+              color: AppColors.black01,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: AppColors.black01),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 13,
+              horizontal: 14,
+            ),
             prefixText: isHarga ? 'Rp. ' : '',
             suffixIcon: isCalendar
                 ? IconButton(
@@ -622,9 +657,7 @@ class CustomInputKeuanganField extends StatelessWidget {
                   )
                 : null,
           ),
-          inputFormatters: [
-            if (isHarga) moneyFormatter(),
-          ],
+          inputFormatters: [if (isHarga) moneyFormatter()],
           onTap: isCalendar
               ? () async {
                   _showDatePicker(context);
@@ -674,7 +707,11 @@ class BottomActionButton extends StatelessWidget {
   final String activePage;
   final VoidCallback onSave;
 
-  const BottomActionButton({super.key, required this.activePage, required this.onSave});
+  const BottomActionButton({
+    super.key,
+    required this.activePage,
+    required this.onSave,
+  });
 
   @override
   Widget build(BuildContext context) {

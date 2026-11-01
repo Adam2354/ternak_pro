@@ -16,7 +16,10 @@ class IncomeExpenseDonutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = (totalPendapatan + totalPengeluaran).toDouble().clamp(1, double.infinity);
+    final total = (totalPendapatan + totalPengeluaran).toDouble().clamp(
+      1,
+      double.infinity,
+    );
     final pIncome = (totalPendapatan / total);
     final pExpense = (totalPengeluaran / total);
 
@@ -33,33 +36,36 @@ class IncomeExpenseDonutCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Donut
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: CustomPaint(
-              painter: _DonutPainter(
-                incomeRatio: pIncome,
-                expenseRatio: pExpense,
-                incomeColor: const Color(0xFF1F73FF), // biru
-                expenseColor: const Color(0xFFE53935), // merah
-                bgColor: const Color(0xFFE9F0FF),      // ring background halus
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final donutSize = constraints.maxWidth < 360 ? 96.0 : 110.0;
+          final legend = _LegendAndTotals(
+            income: totalPendapatan.toDouble(),
+            expense: totalPengeluaran.toDouble(),
+            incomeColor: const Color(0xFF1F73FF),
+            expenseColor: const Color(0xFFE53935),
+          );
+
+          return Row(
+            children: [
+              SizedBox(
+                width: donutSize,
+                height: donutSize,
+                child: CustomPaint(
+                  painter: _DonutPainter(
+                    incomeRatio: pIncome,
+                    expenseRatio: pExpense,
+                    incomeColor: const Color(0xFF1F73FF),
+                    expenseColor: const Color(0xFFE53935),
+                    bgColor: const Color(0xFFE9F0FF),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Legend & angka
-          Expanded(
-            child: _LegendAndTotals(
-              income: totalPendapatan.toDouble(),
-              expense: totalPengeluaran.toDouble(),
-              incomeColor: const Color(0xFF1F73FF),
-              expenseColor: const Color(0xFFE53935),
-            ),
-          ),
-        ],
+              const SizedBox(width: 12),
+              Expanded(child: legend),
+            ],
+          );
+        },
       ),
     );
   }
@@ -79,12 +85,20 @@ class _LegendAndTotals extends StatelessWidget {
   final Color expenseColor;
 
   String get rupiah {
-    final f = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0);
+    final f = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp. ',
+      decimalDigits: 0,
+    );
     // NumberFormat sudah kasih titik ribuan otomatis
     return f.currencySymbol; // "Rp. "
   }
 
-  String _fmt(num v) => NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0).format(v);
+  String _fmt(num v) => NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp. ',
+    decimalDigits: 0,
+  ).format(v);
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +112,10 @@ class _LegendAndTotals extends StatelessWidget {
           children: [
             _Dot(color: incomeColor),
             const SizedBox(width: 8),
-            Text('Total Pendapatan', style: text.bodyMedium?.copyWith(color: Colors.black87)),
+            Text(
+              'Total Pendapatan',
+              style: text.bodyMedium?.copyWith(color: Colors.black87),
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -124,7 +141,10 @@ class _LegendAndTotals extends StatelessWidget {
           children: [
             _Dot(color: expenseColor),
             const SizedBox(width: 8),
-            Text('Total Pengeluaran', style: text.bodyMedium?.copyWith(color: Colors.black87)),
+            Text(
+              'Total Pengeluaran',
+              style: text.bodyMedium?.copyWith(color: Colors.black87),
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -153,7 +173,8 @@ class _Dot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 12, height: 12,
+      width: 12,
+      height: 12,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
@@ -169,8 +190,8 @@ class _DonutPainter extends CustomPainter {
     required this.bgColor,
   });
 
-  final double incomeRatio;   // 0..1
-  final double expenseRatio;  // 0..1
+  final double incomeRatio; // 0..1
+  final double expenseRatio; // 0..1
   final Color incomeColor;
   final Color expenseColor;
   final Color bgColor;
@@ -214,14 +235,20 @@ class _DonutPainter extends CustomPainter {
     }
     // lanjutkan dari akhir income
     if (sweepExpense > 0) {
-      canvas.drawArc(rect, startAngle + sweepIncome, sweepExpense, false, arcPaintExpense);
+      canvas.drawArc(
+        rect,
+        startAngle + sweepIncome,
+        sweepExpense,
+        false,
+        arcPaintExpense,
+      );
     }
 
     // Persen pada masing-masing arc
     final tp = TextPainter(
-    textAlign: TextAlign.center,
-    textDirection: ui.TextDirection.ltr // ✅ benar
-  );
+      textAlign: TextAlign.center,
+      textDirection: ui.TextDirection.ltr, // ✅ benar
+    );
 
     void drawPercent(double ratio, Color color, double offsetAngle) {
       if (ratio <= 0) return;
@@ -234,14 +261,22 @@ class _DonutPainter extends CustomPainter {
 
       tp.text = TextSpan(
         text: '${(ratio * 100).round()}%',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
       );
       tp.layout();
       final pos = labelPos - Offset(tp.width / 2, tp.height / 2);
       // bubble background (biar mirip contoh)
       final bubble = Paint()..color = color;
       final bubbleRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: labelPos, width: tp.width + 12, height: tp.height + 6),
+        Rect.fromCenter(
+          center: labelPos,
+          width: tp.width + 12,
+          height: tp.height + 6,
+        ),
         const Radius.circular(999),
       );
       canvas.drawRRect(bubbleRect, bubble);

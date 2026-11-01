@@ -809,16 +809,6 @@ class HasilRekomendasiTernakPage extends StatelessWidget {
                         value: qFormatter.format(qValue),
                       ),
                     ),
-
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: _buildInfoCard(
-                        title: 'ROI',
-
-                        value: '${_resolveValue(item, ['roi'])}%',
-                      ),
-                    ),
                   ],
                 ),
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -135,6 +136,7 @@ class ApiService {
     final defaultHeaders = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
       if (token is String && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
 
@@ -160,9 +162,30 @@ class ApiService {
     }
   }
 
+  void _throwIfHtmlResponse(http.Response response) {
+    final responseBody = response.body.trim();
+    final looksLikeHtml =
+        responseBody.startsWith('<!DOCTYPE html') ||
+        responseBody.startsWith('<html');
+
+    if (looksLikeHtml) {
+      if (response.statusCode == 401 ||
+          response.statusCode == 301 ||
+          response.statusCode == 302) {
+        throw Exception('Sesi login tidak valid. Silakan login kembali.');
+      }
+      throw Exception(
+        'Server mengembalikan halaman HTML, bukan respons API JSON '
+        '(status ${response.statusCode}).',
+      );
+    }
+  }
+
   // Fungsi untuk menangani response
   dynamic _handleResponse(http.Response response) {
     try {
+      _throwIfHtmlResponse(response);
+
       final body = jsonDecode(response.body); // Decode JSON response body
       if (body is! Map) {
         throw Exception('Invalid response format');
@@ -245,36 +268,46 @@ class ApiService {
   }) async {
     final data = {'email_or_phone': email, 'password': password};
 
-    // Melakukan request ke API
-    final response = await _makeRequest(
-      method: 'POST',
-      endpoint: '/login',
-      body: data,
-    );
+    // Endpoint produksi menolak JSON untuk login dan mengembalikan halaman
+    // HTML 403. Laravel tetap menerima payload form-urlencoded.
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/login'),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: data,
+        )
+        .timeout(const Duration(seconds: 20));
 
-    // Periksa apakah status code 200 (OK)
+    _throwIfHtmlResponse(response);
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Login gagal: format respons server tidak valid.');
+    }
+
     if (response.statusCode == 200) {
-      // Parsing JSON dari body response
-      final result = jsonDecode(response.body);
+      final result = decoded;
 
-      // Debugging: Cetak respons untuk memastikan kita menerima data yang diharapkan
-      print('Response Body: ${response.body}');
+      if (result['status'] == 'success' && result['data'] is Map) {
+        final data = result['data'] as Map;
+        final user = data['user'];
+        final token = data['token'];
 
-      // Periksa apakah data ada dalam response
-      if (result != null &&
-          result['status'] == 'success' &&
-          result.containsKey('data')) {
-        final data = result['data']; // Ambil objek data dari respons
-        final user = data['user']; // Ambil data user
-        final token = data['token']; // Ambil token
+        if (user is! Map || token is! String || token.isEmpty) {
+          throw Exception(
+            'Login gagal: Data pengguna atau token tidak ditemukan di respons.',
+          );
+        }
 
         // Akses data user
-        final uid = (user['uid'] ?? '') as String;
-        final userEmail = (user['email'] ?? '') as String;
-        final noTelepon = (user['no_telepon'] ?? '') as String;
-        final name = (user['name'] ?? '') as String;
-        final roleId =
-            (user['role_id'] ?? 3) as int; // Default ke 3 jika roleId tidak ada
+        final uid = (user['uid'] ?? '').toString();
+        final userEmail = (user['email'] ?? '').toString();
+        final noTelepon = (user['no_telepon'] ?? '').toString();
+        final name = (user['name'] ?? '').toString();
+        final roleId = int.tryParse('${user['role_id'] ?? 3}') ?? 3;
 
         // Simpan token dan data pengguna ke SharedPreferences
         await _saveCredentials(token, uid, userEmail, noTelepon, name, roleId);
@@ -290,33 +323,42 @@ class ApiService {
           'name': name,
           'role_id': roleId,
         });
-      } else {
-        throw Exception(
-          'Login gagal: Data pengguna atau token tidak ditemukan di response.',
-        );
       }
-    } else {
-      // Tangani jika status code bukan 200 (misalnya 401 untuk unauthorized, 500 untuk server error)
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      final String message = responseData['message'] ?? 'Pesan tidak tersedia';
-      throw Exception('Login gagal: $message');
     }
+
+    final message = decoded['message']?.toString().trim();
+    throw Exception(
+      'Login gagal: ${message == null || message.isEmpty ? 'respons server tidak berhasil.' : message}',
+    );
   }
 
   // **Google Login Endpoint**
   Future<User> loginWithGoogle({required String idToken}) async {
-    final response = await _makeRequest(
-      method: 'POST',
-      endpoint: '/google-login',
-      body: {'id_token': idToken},
-    );
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/google-login'),
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: {'id_token': idToken},
+        )
+        .timeout(const Duration(seconds: 30));
+
+    _throwIfHtmlResponse(response);
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception(
+        'Login Google gagal: format respons server tidak valid '
+        '(status ${response.statusCode}).',
+      );
+    }
 
     if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
+      final result = decoded;
 
-      final payload = result is Map && result.containsKey('data')
-          ? result['data']
-          : result;
+      final payload = result.containsKey('data') ? result['data'] : result;
 
       if (payload is! Map) {
         throw Exception(
@@ -328,8 +370,12 @@ class ApiService {
       final token = payload['token'] ?? result['token'];
 
       if (token == null || token.toString().isEmpty) {
+        final serverMessage = result['message']?.toString().trim();
         throw Exception(
-          'Login Google gagal: Token tidak ditemukan di response.',
+          serverMessage == null || serverMessage.isEmpty
+              ? 'Login Google gagal: backend tidak mengembalikan token. '
+                    'Periksa route/controller Google di server.'
+              : 'Login Google gagal: $serverMessage',
         );
       }
 
@@ -350,9 +396,11 @@ class ApiService {
       });
     }
 
-    final responseData = jsonDecode(response.body);
-    final message = responseData['message'] ?? 'Login Google gagal';
-    throw Exception(message);
+    final message = decoded['message']?.toString().trim();
+    final errorMessage = message == null || message.isEmpty
+        ? 'Login Google gagal di server (status ${response.statusCode}).'
+        : message;
+    throw Exception(errorMessage);
   }
 
   // **Logout**
@@ -622,7 +670,15 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-        final totalKeuanganStr = body['total_keuangan'] ?? '0';
+        if (body is! Map) {
+          throw Exception('Format total keuangan tidak valid');
+        }
+        final rawTotal =
+            body['total_keuangan'] ??
+            (body['data'] is Map
+                ? (body['data'] as Map)['total_keuangan']
+                : body['data']);
+        final totalKeuanganStr = rawTotal ?? '0';
         final totalKeuangan = int.tryParse(totalKeuanganStr.toString()) ?? 0;
         return totalKeuangan;
       } else {
@@ -645,21 +701,43 @@ class ApiService {
       ); // Untuk memeriksa seluruh response
 
       if (response.statusCode == 200) {
-        final List<dynamic> keuanganList = jsonDecode(response.body);
-        // Mengonversi setiap elemen keuanganList menjadi objek KeuanganItem
-        List<KeuanganItem> keuanganItems = keuanganList.map<KeuanganItem>((
-          item,
-        ) {
-          return KeuanganItem.fromJson(item);
-        }).toList();
-        print('Keuangan response: $keuanganList');
-        return keuanganItems; // Mengembalikan list keuangan
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> keuanganList;
+
+        if (decoded is List) {
+          keuanganList = decoded;
+        } else if (decoded is Map) {
+          final rawList = decoded['data'] ?? decoded['transactions'];
+          if (rawList is List) {
+            keuanganList = rawList;
+          } else if (decoded['id'] != null || decoded['id_keuangan'] != null) {
+            keuanganList = [decoded];
+          } else {
+            throw Exception(
+              'Format daftar keuangan tidak valid: respons tidak berisi list',
+            );
+          }
+        } else {
+          throw Exception('Format daftar keuangan tidak valid');
+        }
+
+        return keuanganList
+            .whereType<Map>()
+            .map(
+              (item) => KeuanganItem.fromJson(Map<String, dynamic>.from(item)),
+            )
+            .toList();
       } else {
         throw Exception('Gagal mengambil data keuangan');
       }
     } catch (e) {
       throw Exception('Error saat mengambil data keuangan: $e');
     }
+  }
+
+  int? _asInt(dynamic value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 
   // Fungsi untuk menyimpan data keuangan
@@ -704,24 +782,39 @@ class ApiService {
         }
       }
 
-      if (response.statusCode == 201) {
-        final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decodedBody = jsonDecode(response.body);
+        final responseBody = decodedBody is Map<String, dynamic>
+            ? decodedBody
+            : <String, dynamic>{};
+        final body = responseBody['data'] is Map<String, dynamic>
+            ? responseBody['data'] as Map<String, dynamic>
+            : responseBody;
+        final id = body['id'] ?? body['id_keuangan'];
+        final idKeuangan = _asInt(id);
+        if (idKeuangan == null) {
+          throw Exception('Respons server tidak berisi ID data keuangan');
+        }
         return KeuanganItem(
-          idKeuangan: body['id'] as int,
-          isPengeluaran: body['is_pengeluaran'] as bool,
-          nominalTotal: body['nominal_total'] as int,
-          dariTujuan: (body['dari_tujuan'] as String?) ?? '',
-          asetId: (body['aset_id'] as int?) ?? 0,
+          idKeuangan: idKeuangan,
+          isPengeluaran:
+              body['is_pengeluaran'] == true ||
+              body['is_pengeluaran'] == 1 ||
+              body['is_pengeluaran'] == '1',
+          nominalTotal:
+              _asInt(body['nominal_total']) ?? keuanganItem.nominalTotal,
+          dariTujuan: body['dari_tujuan']?.toString() ?? '',
+          asetId: _asInt(body['aset_id']) ?? keuanganItem.asetId,
           namaAset: keuanganItem.namaAset.isNotEmpty
               ? keuanganItem.namaAset
               : '',
-          tglKeuangan: DateTime.parse(body['tgl_keuangan'] as String),
-          catatan: (body['catatan'] as String?) ?? '',
+          tglKeuangan: body['tgl_keuangan'] != null
+              ? DateTime.parse(body['tgl_keuangan'].toString())
+              : keuanganItem.tglKeuangan,
+          catatan: body['catatan']?.toString() ?? '',
         );
       } else {
-        throw Exception(
-          'Gagal menyimpan data keuangan: ${response.statusCode} - ${response.body}',
-        );
+        throw Exception('Server menolak penyimpanan (${response.statusCode})');
       }
     } catch (e) {
       throw Exception('Error saat menyimpan data keuangan: $e');
@@ -742,6 +835,19 @@ class ApiService {
       method: 'DELETE',
       endpoint: '/keuangan/$id',
     );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return null;
+      }
+
+      final body = jsonDecode(response.body);
+      if (body is Map &&
+          (body['status'] == 'success' || body['message'] != null)) {
+        return body['data'];
+      }
+
+      throw Exception('Format respons penghapusan data keuangan tidak valid');
+    }
     return _handleResponse(response);
   }
 
@@ -984,16 +1090,12 @@ class ApiService {
   // Fungsi untuk menghapus data ternak
   Future<void> deleteTernak(String userId, int idTernak) async {
     try {
-      final credentials = await loadCredentials();
-      final token = credentials['token'];
       final response = await http
           .delete(
             Uri.parse('$_baseUrl/ternak/$userId/$idTernak'),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
-              if (token is String && token.isNotEmpty)
-                'Authorization': 'Bearer $token',
             },
           )
           .timeout(const Duration(seconds: 15));
@@ -1272,6 +1374,7 @@ class ApiService {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
             },
             body: jsonEncode({
               'tgl_tugas': tglTugas,
@@ -1323,7 +1426,7 @@ class ApiService {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
+              'X-Requested-With': 'XMLHttpRequest',
               'Authorization': 'Bearer $token',
             },
           )
@@ -1588,6 +1691,7 @@ class ApiService {
       final headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         if (token is String && token.isNotEmpty)
           'Authorization': 'Bearer $token',
       };
@@ -1602,16 +1706,49 @@ class ApiService {
       print('POST AI request -> $uri');
       print('Payload: ${jsonEncode(payload)}');
 
-      http.Response response;
-      try {
-        response = await http
-            .post(uri, headers: headers, body: jsonEncode(payload))
-            .timeout(const Duration(seconds: 45));
-      } on Exception catch (e) {
-        if (e.toString().contains('TimeoutException')) {
-          throw Exception('Request ke AI timed out after 45 detik: $e');
+      late http.Response response;
+      Object? lastTransientError;
+      for (var attempt = 1; attempt <= 2; attempt++) {
+        try {
+          response = await http
+              .post(uri, headers: headers, body: jsonEncode(payload))
+              .timeout(const Duration(seconds: 45));
+          lastTransientError = null;
+
+          final isTransientStatus = response.statusCode == 502 ||
+              response.statusCode == 503 ||
+              response.statusCode == 504;
+          if (!isTransientStatus || attempt == 2) {
+            break;
+          }
+
+          print(
+            '[VIKOR] RETRY ${DateTime.now().toIso8601String()} '
+            'status=${response.statusCode}',
+          );
+        } on TimeoutException catch (error) {
+          lastTransientError = error;
+          if (attempt == 2) {
+            throw Exception('Request ke AI timed out setelah 2 percobaan.');
+          }
+          print(
+            '[VIKOR] RETRY ${DateTime.now().toIso8601String()} '
+            'reason=timeout',
+          );
+        } on http.ClientException catch (error) {
+          lastTransientError = error;
+          if (attempt == 2) rethrow;
+          print(
+            '[VIKOR] RETRY ${DateTime.now().toIso8601String()} '
+            'reason=network',
+          );
         }
-        rethrow;
+
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+
+      if (lastTransientError != null) {
+        throw Exception('Gagal menghubungi service rekomendasi.');
       }
 
       final responseBody = response.body.trim();
@@ -1677,6 +1814,7 @@ class ApiService {
           item,
         ) {
           final map = Map<String, dynamic>.from(item as Map);
+          map.remove('roi');
           final qValue = map['q_value'] ?? map['q'] ?? 0;
           final normalizedQ = qValue is num
               ? qValue.toDouble()
@@ -1703,7 +1841,6 @@ class ApiService {
                     ? 'Cukup Sesuai'
                     : 'Kurang Direkomendasikan'),
             'ranking': map['ranking'] ?? 0,
-            'roi': map['roi'] ?? 0,
             'alasan': map['alasan'] ?? '',
             'deskripsi': map['deskripsi'] ?? '',
             'modal_minimum': modalMinimum,

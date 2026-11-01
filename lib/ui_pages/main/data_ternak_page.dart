@@ -17,6 +17,10 @@ class DataTernakPage extends StatefulWidget {
 bool _isLoading = true;
 
 class _DataTernakPageState extends State<DataTernakPage> {
+  String _normalizeCondition(String condition) {
+    return condition.trim().toLowerCase().replaceAll('_', ' ');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,7 +42,7 @@ class _DataTernakPageState extends State<DataTernakPage> {
     final ternak = await _apiService.getTernakUserAll(credential['user_id']);
     final now = DateTime.now();
     final activeTernak = ternak.where((item) {
-      return item.kondisiTernak.toLowerCase() != 'meninggal';
+      return _normalizeCondition(item.kondisiTernak) != 'meninggal';
     }).toList();
     final usiaTotal = activeTernak.fold<int>(
       0,
@@ -52,16 +56,20 @@ class _DataTernakPageState extends State<DataTernakPage> {
       dataUser = credential['name'] ?? ''; // Safe access with default value
       jmlTernak = activeTernak.length;
       jmlSakit = ternak
-          .where((item) => item.kondisiTernak.toLowerCase() == 'sakit')
+          .where((item) => _normalizeCondition(item.kondisiTernak) == 'sakit')
           .length;
       jmlHamil = ternak
-          .where((item) => item.kondisiTernak.toLowerCase() == 'hamil')
+          .where((item) => _normalizeCondition(item.kondisiTernak) == 'hamil')
           .length;
       jmlMeninggal = ternak
-          .where((item) => item.kondisiTernak.toLowerCase() == 'meninggal')
+          .where(
+            (item) => _normalizeCondition(item.kondisiTernak) == 'meninggal',
+          )
           .length;
       jmlSiapJual = ternak
-          .where((item) => item.kondisiTernak.toLowerCase() == 'siap jual')
+          .where(
+            (item) => _normalizeCondition(item.kondisiTernak) == 'siap jual',
+          )
           .length;
       rataUsia = activeTernak.isEmpty ? 0 : usiaTotal / activeTernak.length;
       formattedDate = dateFormat.format(now);

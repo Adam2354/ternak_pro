@@ -55,7 +55,6 @@ class TernakRecommendationItem {
   final num lahanMinimum;
   final num waktuPerawatan;
   final num pengalamanMinimum;
-  final num roi;
   final num biayaAwal;
   final num biayaPerEkor;
   final num potensiKeuntungan;
@@ -99,7 +98,6 @@ class TernakRecommendationItem {
     required this.lahanMinimum,
     required this.waktuPerawatan,
     required this.pengalamanMinimum,
-    required this.roi,
     required this.biayaAwal,
     required this.biayaPerEkor,
     required this.potensiKeuntungan,
@@ -175,7 +173,6 @@ class TernakRecommendationItem {
       lahanMinimum: _num(json['lahan_minimum']),
       waktuPerawatan: _num(json['waktu_perawatan']),
       pengalamanMinimum: _num(json['pengalaman_minimum']),
-      roi: _num(json['roi']),
       biayaAwal: _num(json['biaya_awal']),
       biayaPerEkor: _num(json['biaya_per_ekor']),
       potensiKeuntungan: _num(json['potensi_keuntungan']),

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatService {
   static const String baseUrl = 'https://hawariyyun.my.id/api/v1';
-  
+
   String? authToken;
   final Completer<void> _tokenLoaded = Completer<void>();
 
@@ -35,20 +35,22 @@ class ChatService {
     int? conversationId, // Tambahkan opsi cancel token
   }) async {
     await ensureTokenLoaded();
-    
+
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/ai/chat/deepseek'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $authToken',
-        },
-        body: json.encode({
-          'user_id': userId,
-          'message': message,
-          'conversation_id': conversationId,
-        }),
-      ).timeout(Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/ai/chat/deepseek'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $authToken',
+            },
+            body: json.encode({
+              'user_id': userId,
+              'message': message,
+              'conversation_id': conversationId,
+            }),
+          )
+          .timeout(Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -72,9 +74,7 @@ class ChatService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authToken',
       },
-      body: json.encode({
-        'user_id': userId,
-      }),
+      body: json.encode({'user_id': userId}),
     );
 
     if (response.statusCode == 200) {
@@ -87,16 +87,14 @@ class ChatService {
   // Dapatkan semua percakapan user
   Future<List<dynamic>> getConversations(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-      authToken = prefs.getString('token');
+    authToken = prefs.getString('token');
     final response = await http.post(
       Uri.parse('$baseUrl/ai/conversations/deepseek'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authToken',
       },
-      body: json.encode({
-        'user_id': userId,
-      }),
+      body: json.encode({'user_id': userId}),
     );
 
     if (response.statusCode == 200) {
@@ -107,14 +105,15 @@ class ChatService {
   }
 
   // Dapatkan percakapan spesifik
-  Future<Map<String, dynamic>> getConversation(String userId, int conversationId) async {
+  Future<Map<String, dynamic>> getConversation(
+    String userId,
+    int conversationId,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     authToken = prefs.getString('token');
     final response = await http.get(
       Uri.parse('$baseUrl/ai/conversation/deepseek/$userId/$conversationId'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
+      headers: {'Authorization': 'Bearer $authToken'},
     );
 
     if (response.statusCode == 200) {
@@ -128,9 +127,7 @@ class ChatService {
   Future<void> deleteConversation(String userId, int conversationId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/ai/conversation/deepseek/$userId/$conversationId'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
+      headers: {'Authorization': 'Bearer $authToken'},
     );
 
     if (response.statusCode != 200) {

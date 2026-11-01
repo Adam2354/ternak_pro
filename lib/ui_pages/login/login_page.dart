@@ -4,6 +4,7 @@ import 'package:ternak_pro/shared/custom_loading.dart';
 import 'package:ternak_pro/shared/theme.dart';
 
 import '../../services/api_service.dart';
+import '../../services/google_sign_in_config.dart';
 import '../../shared/widgets/login_app_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -322,7 +323,10 @@ class _LoginPageState extends State<LoginPage>
                                               .signInWithPopup(googleProvider);
                                         } else {
                                           await GoogleSignIn.instance
-                                              .initialize();
+                                              .initialize(
+                                                serverClientId:
+                                                    googleServerClientId,
+                                              );
 
                                           final googleUser = await GoogleSignIn
                                               .instance
@@ -330,10 +334,20 @@ class _LoginPageState extends State<LoginPage>
 
                                           final googleAuth =
                                               googleUser.authentication;
+                                          final googleIdToken =
+                                              googleAuth.idToken;
+
+                                          if (googleIdToken == null ||
+                                              googleIdToken.isEmpty) {
+                                            throw Exception(
+                                              'Token Google tidak tersedia. '
+                                              'Periksa konfigurasi OAuth Android.',
+                                            );
+                                          }
 
                                           final credential =
                                               GoogleAuthProvider.credential(
-                                                idToken: googleAuth.idToken,
+                                                idToken: googleIdToken,
                                               );
 
                                           userCredential = await FirebaseAuth
@@ -375,6 +389,13 @@ class _LoginPageState extends State<LoginPage>
                                         if (mounted) {
                                           showError(
                                             'Login Google gagal: ${e.message ?? e.code}',
+                                          );
+                                        }
+                                      } on GoogleSignInException catch (e) {
+                                        if (mounted) {
+                                          showError(
+                                            'Login Google gagal (${e.code.name}): '
+                                            '${e.description ?? 'Konfigurasi Google di Android belum lengkap.'}',
                                           );
                                         }
                                       } catch (e) {

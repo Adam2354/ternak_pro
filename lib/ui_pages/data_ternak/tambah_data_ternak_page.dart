@@ -513,6 +513,30 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
     });
   }
 
+  List<Map<String, dynamic>> get _filteredRasOptions {
+    if (_selectedHewan.isEmpty) return const [];
+
+    final selectedHewan = _optionsHewan.firstWhere(
+      (hewan) => hewan['id'].toString() == _selectedHewan,
+      orElse: () => <String, dynamic>{},
+    );
+    final namaHewan = selectedHewan['nama']?.toString().toLowerCase().trim();
+
+    if (namaHewan == null || namaHewan.isEmpty) return const [];
+
+    return _optionsRas.where((ras) {
+      final namaRas = ras['nama']?.toString().toLowerCase().trim() ?? '';
+      return namaRas.startsWith('$namaHewan ');
+    }).toList();
+  }
+
+  void _onHewanChanged(String value) {
+    setState(() {
+      _selectedHewan = value;
+      _selectedRas = '';
+    });
+  }
+
   Future<void> _saveData() async {
     // Validasi minimal sebelum kirim
     if (_selectedHewan.isEmpty ||
@@ -710,16 +734,17 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
                             {'id': '5', 'nama': 'Bebek'},
                           ],
                     selectedValue: _selectedHewan,
-                    onChanged: (value) =>
-                        setState(() => _selectedHewan = value),
+                    onChanged: _onHewanChanged,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: CustomDropdownInputTernak(
                     label: 'Pilih Ras',
-                    hintText: 'Masukkan Ras',
-                    options: _optionsRas,
+                    hintText: _selectedHewan.isEmpty
+                        ? 'Pilih hewan dahulu'
+                        : 'Pilih ras',
+                    options: _filteredRasOptions,
                     selectedValue: _selectedRas,
                     onChanged: (value) => setState(() => _selectedRas = value),
                   ),
@@ -777,6 +802,9 @@ class TambahDataTernakPageState extends State<TambahDataTernakPage> {
                 options: const [
                   {'id': 'Sehat', 'nama': 'Sehat'},
                   {'id': 'Sakit', 'nama': 'Sakit'},
+                  {'id': 'Hamil', 'nama': 'Hamil'},
+                  {'id': 'Meninggal', 'nama': 'Meninggal'},
+                  {'id': 'Siap Jual', 'nama': 'Siap Jual'},
                 ],
                 selectedValue: _selectedKondisi,
                 onChanged: (value) => setState(() => _selectedKondisi = value),

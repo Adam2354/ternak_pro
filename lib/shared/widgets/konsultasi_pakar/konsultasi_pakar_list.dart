@@ -64,7 +64,7 @@ class KonsultasiPakarItem extends StatelessWidget {
                           : imageUrl,
                       width: 75,
                       height: 75,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       placeHolder:
                           'assets/home_assets/images/img_not_found.png',
                     ),

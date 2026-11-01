@@ -55,9 +55,7 @@ class CustomDropdownSehatState extends State<CustomDropdownSehat> {
                   children: [
                     // Icon
                     Image.asset(
-                      _selectedValue == 'Sehat'
-                          ? 'assets/home_assets/icons/ic_check_green.png'
-                          : 'assets/home_assets/icons/ic_check_yellow.png',
+                      _iconForCondition(_selectedValue),
                       width: 16,
                       height: 16,
                     ),
@@ -97,11 +95,14 @@ class CustomDropdownSehatState extends State<CustomDropdownSehat> {
           ),
           contentPadding: EdgeInsets.zero,
           content: SizedBox(
-            height: 150,
+            height: 270,
             child: Column(
               children: <Widget>[
                 _buildDialogOption('Sehat'),
                 _buildDialogOption('Sakit'),
+                _buildDialogOption('Hamil'),
+                _buildDialogOption('Meninggal'),
+                _buildDialogOption('Siap Jual'),
               ],
             ),
           ),
@@ -124,13 +125,7 @@ class CustomDropdownSehatState extends State<CustomDropdownSehat> {
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         child: Row(
           children: [
-            Image.asset(
-              value == 'Sehat'
-                  ? 'assets/home_assets/icons/ic_check_green.png'
-                  : 'assets/home_assets/icons/ic_check_yellow.png',
-              width: 16,
-              height: 16,
-            ),
+            Image.asset(_iconForCondition(value), width: 16, height: 16),
             SizedBox(width: 10),
             Text(
               value,
@@ -143,5 +138,11 @@ class CustomDropdownSehatState extends State<CustomDropdownSehat> {
         ),
       ),
     );
+  }
+
+  String _iconForCondition(String value) {
+    return value == 'Sehat'
+        ? 'assets/home_assets/icons/ic_check_green.png'
+        : 'assets/home_assets/icons/ic_check_yellow.png';
   }
 }

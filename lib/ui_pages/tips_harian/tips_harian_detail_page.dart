@@ -4,6 +4,7 @@ import 'package:ternak_pro/shared/custom_loading.dart';
 import 'package:ternak_pro/shared/theme.dart';
 import '../../models/TipsItem.dart';
 import '../../shared/widgets/tips_harian/custom_app_bar.dart';
+import '../../shared/widgets/custom_image_view.dart';
 
 class TipsHarianDetailPage extends StatefulWidget {
   const TipsHarianDetailPage({super.key});
@@ -38,15 +39,11 @@ class _TipsHarianDetailPageState extends State<TipsHarianDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: TernakProBoxLoading()),
-      );
+      return const Scaffold(body: Center(child: TernakProBoxLoading()));
     }
 
     if (detailData == null) {
-      return const Scaffold(
-        body: Center(child: Text("Data tidak ditemukan")),
-      );
+      return const Scaffold(body: Center(child: Text("Data tidak ditemukan")));
     }
 
     return Scaffold(
@@ -71,7 +68,10 @@ class _TipsHarianDetailPageState extends State<TipsHarianDetailPage> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: AppColors.green01),
@@ -109,7 +109,7 @@ class _TipsHarianDetailPageState extends State<TipsHarianDetailPage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                detailData!.imageUrl,
+                normalizeAssetUrl(detailData!.imageUrl),
                 width: double.infinity,
                 height: 215,
                 fit: BoxFit.cover,
@@ -161,7 +161,7 @@ class _TipsHarianDetailPageState extends State<TipsHarianDetailPage> {
       'September',
       'Oktober',
       'November',
-      'Desember'
+      'Desember',
     ];
     return months[month - 1];
   }

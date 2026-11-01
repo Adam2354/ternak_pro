@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "77210585768-e81pd6nn8i0gib7orvapmj4jkdtsoq65.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ternak_pro",
+            "certificate_hash": "02fdeb4a300cad8bc11a152374a190a45d80d4d9"
+          }
+        },
+        {
           "client_id": "77210585768-8gj0ovn67l959njntrdhhj2eg96ovb6c.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "77210585768-8gj0ovn67l959njntrdhhj2eg96ovb6c.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "77210585768-frgggahrda68170qsr7j8nm57fs37pa8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ternakPro"
+              }
             }
           ]
         }

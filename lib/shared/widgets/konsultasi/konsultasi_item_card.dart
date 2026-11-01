@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme.dart';
+import '../custom_image_view.dart';
 
 class KonsultasiItemCard extends StatelessWidget {
   final String imagePath;
@@ -29,10 +30,19 @@ class KonsultasiItemCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         double screenWidth = constraints.maxWidth; // Lebar layar yang tersedia
-        double imageWidth = screenWidth * 0.15; // Menyesuaikan lebar gambar (15% dari lebar layar)
-        double paddingBetween = screenWidth * 0.03; // Padding antara elemen (3% dari lebar layar)
-        double fontSizeTitle = (screenWidth * 0.04).clamp(14.0, 18.0); // Ukuran font judul
-        double fontSizeDescription = (screenWidth * 0.01).clamp(12.0, 16.0); // Ukuran font deskripsi
+        double imageWidth =
+            screenWidth *
+            0.15; // Menyesuaikan lebar gambar (15% dari lebar layar)
+        double paddingBetween =
+            screenWidth * 0.03; // Padding antara elemen (3% dari lebar layar)
+        double fontSizeTitle = (screenWidth * 0.04).clamp(
+          14.0,
+          18.0,
+        ); // Ukuran font judul
+        double fontSizeDescription = (screenWidth * 0.01).clamp(
+          12.0,
+          16.0,
+        ); // Ukuran font deskripsi
 
         return Container(
           margin: EdgeInsets.symmetric(vertical: 8),
@@ -49,20 +59,24 @@ class KonsultasiItemCard extends StatelessWidget {
                   // Ikon
                   Padding(
                     padding: EdgeInsets.only(
-                        left: paddingBetween, right: paddingBetween, top: 16, bottom: 16),
+                      left: paddingBetween,
+                      right: paddingBetween,
+                      top: 16,
+                      bottom: 16,
+                    ),
                     child: imagePath.startsWith('http')
-                    ? Image.network(
-                        imagePath,
-                        width: imageWidth,
-                        fit: BoxFit.scaleDown,
-                      )
-                    : Image.asset(
-                        imagePath,
-                        width: imageWidth,
-                        fit: BoxFit.scaleDown,
-                      ),
+                        ? Image.network(
+                            normalizeAssetUrl(imagePath),
+                            width: imageWidth,
+                            fit: BoxFit.scaleDown,
+                          )
+                        : Image.asset(
+                            imagePath,
+                            width: imageWidth,
+                            fit: BoxFit.scaleDown,
+                          ),
                   ),
-                  
+
                   // Text + Button
                   Expanded(
                     child: Container(
@@ -76,7 +90,10 @@ class KonsultasiItemCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             child: Text(
                               title,
                               style: AppTextStyle.semiBold.copyWith(
@@ -104,8 +121,12 @@ class KonsultasiItemCard extends StatelessWidget {
                                   onTap: onPressed,
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: screenWidth * 0.05, // Padding horizontal dinamis
-                                      vertical: screenWidth * 0.02, // Padding vertikal dinamis
+                                      horizontal:
+                                          screenWidth *
+                                          0.05, // Padding horizontal dinamis
+                                      vertical:
+                                          screenWidth *
+                                          0.02, // Padding vertikal dinamis
                                     ),
                                     decoration: BoxDecoration(
                                       gradient: AppColors.gradasi01,
@@ -115,7 +136,10 @@ class KonsultasiItemCard extends StatelessWidget {
                                       "Lihat",
                                       style: AppTextStyle.medium.copyWith(
                                         color: Colors.white,
-                                        fontSize: (screenWidth * 0.03).clamp(10.0, 12.0), // Ukuran font tombol
+                                        fontSize: (screenWidth * 0.03).clamp(
+                                          10.0,
+                                          12.0,
+                                        ), // Ukuran font tombol
                                       ),
                                     ),
                                   ),

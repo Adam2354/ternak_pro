@@ -9,20 +9,19 @@ class KonsultasiPakarDetailPage extends StatefulWidget {
   final int id;
   final String imageUrl;
   final String nama;
-  final List<int> kategori;          // sesuai data list kamu
+  final List<int> kategori; // sesuai data list kamu
   final int harga;
   final int durasi;
   final String noTlp;
   final String spealis;
   final String lokasiPraktik;
-  final String pukulMulai;           // "HH:mm:ss"
-  final String pukulAkhir;           // "HH:mm:ss"
-  final String pendidikan;           // dipisah dengan ';'
+  final String pukulMulai; // "HH:mm:ss"
+  final String pukulAkhir; // "HH:mm:ss"
+  final String pendidikan; // dipisah dengan ';'
   final String pengalaman;
   final String fokusKonsultasi;
   final String? createdAt;
   final String? updatedAt;
-  
 
   const KonsultasiPakarDetailPage({
     super.key,
@@ -50,9 +49,17 @@ class KonsultasiPakarDetailPage extends StatefulWidget {
       id: item['id'] is int ? item['id'] : int.parse(item['id'].toString()),
       imageUrl: item['image_url']?.toString() ?? '',
       nama: item['nama']?.toString() ?? '',
-      kategori: (item['kategori'] as List?)?.map((e) => int.parse(e.toString())).toList() ?? const [],
-      harga: item['harga'] is int ? item['harga'] : int.tryParse(item['harga'].toString()) ?? 0,
-      durasi: item['durasi'] is int ? item['durasi'] : int.tryParse(item['durasi'].toString()) ?? 0,
+      kategori:
+          (item['kategori'] as List?)
+              ?.map((e) => int.parse(e.toString()))
+              .toList() ??
+          const [],
+      harga: item['harga'] is int
+          ? item['harga']
+          : int.tryParse(item['harga'].toString()) ?? 0,
+      durasi: item['durasi'] is int
+          ? item['durasi']
+          : int.tryParse(item['durasi'].toString()) ?? 0,
       noTlp: item['no_tlp']?.toString() ?? '',
       spealis: item['spealis']?.toString() ?? '',
       lokasiPraktik: item['lokasi_praktik']?.toString() ?? '',
@@ -71,11 +78,7 @@ class KonsultasiPakarDetailPage extends StatefulWidget {
       _KonsultasiPakarDetailPageState();
 }
 
-
-class _KonsultasiPakarDetailPageState
-    extends State<KonsultasiPakarDetailPage> {
-  
-    
+class _KonsultasiPakarDetailPageState extends State<KonsultasiPakarDetailPage> {
   String formatRupiah(int value) {
     final formatter = NumberFormat('#,###', 'id_ID');
     return formatter.format(value).replaceAll(',', '.');
@@ -116,8 +119,9 @@ class _KonsultasiPakarDetailPageState
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.4),
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.4,
+        ),
         child: _buildHeaderSection(context, widget.imageUrl),
       ),
       body: SingleChildScrollView(
@@ -146,7 +150,7 @@ class _KonsultasiPakarDetailPageState
                       color: AppColors.blue01,
                     ),
                   ),
-              
+
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -159,7 +163,9 @@ class _KonsultasiPakarDetailPageState
                       Text(
                         'No. Telp: ${formatNomor(widget.noTlp ?? '08')}',
                         style: AppTextStyle.semiBold.copyWith(
-                            fontSize: 16, color: AppColors.black100),
+                          fontSize: 16,
+                          color: AppColors.black100,
+                        ),
                       ),
                     ],
                   ),
@@ -167,12 +173,14 @@ class _KonsultasiPakarDetailPageState
                   Row(
                     children: [
                       Image.asset(
-                      'assets/konsultasi_pakan_assets/icons/ic_clock.png',
-                      width: 20,
-                      height: 20,),
+                        'assets/konsultasi_pakan_assets/icons/ic_clock.png',
+                        width: 20,
+                        height: 20,
+                      ),
                       SizedBox(width: 10),
                       Text(
-                        "${widget.pukulMulai} - ${widget.pukulAkhir}" ' WIB',
+                        "${widget.pukulMulai} - ${widget.pukulAkhir}"
+                        ' WIB',
                         style: AppTextStyle.semiBold.copyWith(
                           fontSize: 16,
                           color: AppColors.black100,
@@ -195,7 +203,9 @@ class _KonsultasiPakarDetailPageState
                           Text(
                             'Lokasi Praktik',
                             style: AppTextStyle.semiBold.copyWith(
-                                fontSize: 16, color: AppColors.black100),
+                              fontSize: 16,
+                              color: AppColors.black100,
+                            ),
                           ),
                         ],
                       ),
@@ -203,13 +213,15 @@ class _KonsultasiPakarDetailPageState
                       Text(
                         widget.lokasiPraktik,
                         style: AppTextStyle.medium.copyWith(
-                            fontSize: 14, color: AppColors.black100),
+                          fontSize: 14,
+                          color: AppColors.black100,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-              
+
                   Divider(color: AppColors.grey20, thickness: 1),
                   const SizedBox(height: 15),
 
@@ -235,13 +247,13 @@ class _KonsultasiPakarDetailPageState
                       if (await canLaunchUrl(url)) {
                         await launchUrl(
                           url,
-                          mode: LaunchMode.externalApplication, // buka app WA kalau ada
+                          mode: LaunchMode
+                              .externalApplication, // buka app WA kalau ada
                         );
                       } else {
                         SnackBar(content: Text('Tidak bisa membuka WhatsApp'));
                       }
                     },
-
                   ),
                   const SizedBox(height: 25),
                   Text(
@@ -251,11 +263,12 @@ class _KonsultasiPakarDetailPageState
                       color: AppColors.black100,
                     ),
                   ),
-                  const SizedBox(height: 10),                  
+                  const SizedBox(height: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• Pendidikan:',
+                      Text(
+                        '• Pendidikan:',
                         style: AppTextStyle.semiBold.copyWith(
                           fontSize: 16,
                           color: AppColors.black100,
@@ -266,7 +279,10 @@ class _KonsultasiPakarDetailPageState
                           .where((e) => e.trim().isNotEmpty)
                           .map(
                             (point) => Padding(
-                              padding: const EdgeInsets.only(bottom: 6, left: 16),
+                              padding: const EdgeInsets.only(
+                                bottom: 6,
+                                left: 16,
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,11 +312,12 @@ class _KonsultasiPakarDetailPageState
                           .toList(),
                     ],
                   ),
-                  const SizedBox(height: 10),                  
+                  const SizedBox(height: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• Pengalaman:',
+                      Text(
+                        '• Pengalaman:',
                         style: AppTextStyle.semiBold.copyWith(
                           fontSize: 16,
                           color: AppColors.black100,
@@ -316,11 +333,12 @@ class _KonsultasiPakarDetailPageState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),                  
+                  const SizedBox(height: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• Fokus Konsultasi:',
+                      Text(
+                        '• Fokus Konsultasi:',
                         style: AppTextStyle.semiBold.copyWith(
                           fontSize: 16,
                           color: AppColors.black100,
@@ -345,8 +363,6 @@ class _KonsultasiPakarDetailPageState
       ),
     );
   }
-
-  
 }
 
 // ===================== Header (tetap) =====================
@@ -354,9 +370,7 @@ Widget _buildHeaderSection(BuildContext context, imageURL) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.4,
     width: double.infinity,
-    decoration: BoxDecoration(
-      gradient: AppColors.gradasi01,
-    ),
+    decoration: BoxDecoration(gradient: AppColors.gradasi01),
     child: Stack(
       children: [
         CustomImageView(
@@ -364,6 +378,24 @@ Widget _buildHeaderSection(BuildContext context, imageURL) {
           height: MediaQuery.of(context).size.height * 0.4,
           width: double.infinity,
           fit: BoxFit.cover,
+        ),
+        Positioned(
+          top: 32,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: ClipRect(
+            child: Image.network(
+              normalizeAssetUrl(imageURL),
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomCenter,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
         ),
         Positioned(
           top: 60,
@@ -382,18 +414,6 @@ Widget _buildHeaderSection(BuildContext context, imageURL) {
               ),
               const SizedBox(width: 10),
             ],
-          ),
-        ),
-        
-        Positioned(
-          top: 120,
-          left: 24,
-          right: 24,
-          child: Image.network(
-            imageURL,
-            height: MediaQuery.of(context).size.height * 0.3,
-            width: double.infinity,
-            fit: BoxFit.fitHeight,
           ),
         ),
       ],
@@ -430,7 +450,9 @@ class _FilledActionButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           elevation: 0,
         ),
@@ -439,14 +461,8 @@ class _FilledActionButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             iconPath.startsWith('http')
-            ? Image.network(
-                iconPath,
-                height: iconSize,
-              )
-            : Image.asset(
-                iconPath,
-                height: iconSize,
-              ),
+                ? Image.network(normalizeAssetUrl(iconPath), height: iconSize)
+                : Image.asset(iconPath, height: iconSize),
             const SizedBox(width: 8),
             Flexible(
               child: FittedBox(
@@ -466,4 +482,3 @@ class _FilledActionButton extends StatelessWidget {
     );
   }
 }
-

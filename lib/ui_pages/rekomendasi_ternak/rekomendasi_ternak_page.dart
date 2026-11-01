@@ -263,7 +263,7 @@ Widget _buildHeaderSection(BuildContext context) {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Rekomendasi Ternak Potensial',
+                  'Rekomendasi Ternak',
                   style: AppTextStyle.medium.copyWith(
                     fontSize: 20,
                     color: AppColors.white100,

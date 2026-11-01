@@ -236,13 +236,7 @@ class CustomTernakItem extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  status == 'Sehat'
-                      ? 'assets/home_assets/icons/ic_check_green.png'
-                      : 'assets/home_assets/icons/ic_check_yellow.png',
-                  width: 14,
-                  height: 14,
-                ),
+                Image.asset(_conditionIcon(status), width: 14, height: 14),
                 const SizedBox(width: 4),
                 // Teks Status dengan scroll dan tooltip
                 _buildScrollableText(
@@ -250,11 +244,7 @@ class CustomTernakItem extends StatelessWidget {
                   text: status,
                   style: AppTextStyle.semiBold.copyWith(
                     fontSize: 14,
-                    color: status == 'Sehat'
-                        ? AppColors.green01
-                        : (status == 'Sakit'
-                              ? AppColors.primaryRed
-                              : AppColors.yellow500),
+                    color: _conditionColor(status),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -338,6 +328,29 @@ class CustomTernakItem extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _conditionIcon(String condition) {
+    return condition.toLowerCase() == 'sehat'
+        ? 'assets/home_assets/icons/ic_check_green.png'
+        : 'assets/home_assets/icons/ic_check_yellow.png';
+  }
+
+  Color _conditionColor(String condition) {
+    switch (condition.toLowerCase()) {
+      case 'sehat':
+        return AppColors.green01;
+      case 'sakit':
+        return AppColors.primaryRed;
+      case 'hamil':
+        return AppColors.purple;
+      case 'meninggal':
+        return AppColors.greyText;
+      case 'siap jual':
+        return AppColors.yellow500;
+      default:
+        return AppColors.yellow500;
+    }
   }
 }
 
